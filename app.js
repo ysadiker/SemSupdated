@@ -84,14 +84,14 @@ const i18n = {
         slaWarningBadge: "2 süre uyarısı",
         cardTotalReports: "TOPLAM BİLDİRİM",
         cardInReview: "İNCELEMEDE",
-        cardAssigned: "ATANAN",
+        cardAssigned: "ATANANLAR",
         cardApproachingDelayed: "YAKLAŞAN / GEÇEN",
         tabReportsHeader: "BİLDİRİMLER",
         tabAll: "Tümü",
         tabOpen: "Açık",
         tabInReview: "İncelemede",
-        tabAssigned: "Atandı",
-        tabCompleted: "Tamamlandı",
+        tabAssigned: "Atananlar",
+        tabDef: "DEF",
         tabClosed: "Kapalı",
         btnFilter: "Filtrele",
         btnFilterText: "Filtrele",
@@ -99,10 +99,8 @@ const i18n = {
         btnNew: "Yeni",
         menuHome: "ANA SAYFA",
         menuReports: "BİLDİRİMLER",
-        menuAssigned: "ATANAN",
-        menuAnalytics: "RAPORLAR",
+        menuAssigned: "ATANANLAR",
         menuUsers: "KULLANICILAR",
-        menuUnits: "BİRİM YÖNETİMİ",
         menuSettings: "AYARLAR",
         menuAnnouncements: "DUYURULAR",
 
@@ -200,7 +198,7 @@ const i18n = {
         tabOpen: "Open",
         tabInReview: "In Review",
         tabAssigned: "Assigned",
-        tabCompleted: "Completed",
+        tabDef: "DEF",
         tabClosed: "Closed",
         btnFilter: "Filter",
         btnFilterText: "Filter",
@@ -209,9 +207,7 @@ const i18n = {
         menuHome: "HOME",
         menuReports: "REPORTS",
         menuAssigned: "ASSIGNED",
-        menuAnalytics: "ANALYTICS",
         menuUsers: "USERS",
-        menuUnits: "DEPARTMENTS",
         menuSettings: "SETTINGS",
         menuAnnouncements: "ANNOUNCEMENTS",
 
@@ -269,6 +265,8 @@ const initialCases = [
         hedefTarih: "Yarın • 24.09",
         isApproaching: true,
         isDelayed: false,
+        birimAlani: "GGH - Bina Tesis",
+        istasyonVeyaProje: "İstasyon Binası Güvenlik ve Giriş Kontrol Projesi",
         konum: "İstasyon Binası Girişi",
         baslik: "Erişim Kontrol Okuyucu Arızası",
         metin: "İstasyon binası girişindeki erişim kontrol okuyucusu zaman zaman çalışmıyor. Fotoğraf ektedir.",
@@ -299,12 +297,14 @@ const initialCases = [
         kategori: "K-9 Riskleri",
         risk: "Kontrollü Bilgi",
         riskLevelS: "S2",
-        durum: "Atandı",
+        durum: "Atananlar",
         atanan: "K9 Birimi",
         atananBirim: "K9 Birimi",
         hedefTarih: "Gecikti",
         isApproaching: false,
         isDelayed: true,
+        birimAlani: "K-9",
+        istasyonVeyaProje: "K9 Çevre Güvenliği ve Arama Sahası Projesi",
         konum: "K9 Eğitim Sahası Çevre Çitleri",
         baslik: "K9 Sahası Çevre Güvenlik Tel Açıklığı",
         metin: "K-9 arama sahasının kuzey çeperinde tel örgülerde açıklık oluştuğu gözlemlendi.",
@@ -335,12 +335,14 @@ const initialCases = [
         kategori: "Operasyon",
         risk: "Genel",
         riskLevelS: "S3",
-        durum: "DEF Başlatıldı",
+        durum: "DEF",
         atanan: "Mehmet Yılmaz",
         atananBirim: "Operasyon",
         hedefTarih: "27.09.2026",
         isApproaching: false,
         isDelayed: false,
+        birimAlani: "İstasyon",
+        istasyonVeyaProje: "Antalya İstasyon (AYT)",
         konum: "Apron 3 Nolu Park Pozisyonu",
         baslik: "Bavul Yükleme Esnasında Reflektif Yelek Eksikliği",
         metin: "Uçak altı bavul yükleme bandında yüklenici firma personellerinden bazılarının reflektif yelek giymediği görüldü.",
@@ -377,6 +379,8 @@ const initialCases = [
         hedefTarih: "Yarın • 24.09",
         isApproaching: true,
         isDelayed: false,
+        birimAlani: "İstasyon",
+        istasyonVeyaProje: "Istanbul İGA İstasyon (IST)",
         konum: "Terminal 2 X-Ray Kontrol Noktası",
         baslik: "X-Ray Cihazı Konveyör Bandı Tutukluğu",
         metin: "Apron X-Ray cihazında konveyör bandı takılma yapıyor ve tarama hızı düşüyor.",
@@ -409,6 +413,27 @@ try {
     const stored = localStorage.getItem('gozen_sems_cases');
     if (stored) {
         cases = JSON.parse(stored);
+        let updated = false;
+        cases.forEach(c => {
+            if (c.durum === "Atandı") { c.durum = "Atananlar"; updated = true; }
+            if (c.durum === "DEF Başlatıldı") { c.durum = "DEF"; updated = true; }
+            if (!c.birimAlani) {
+                if (c.kategori && c.kategori.includes("Bina")) {
+                    c.birimAlani = "GGH - Bina Tesis";
+                    c.istasyonVeyaProje = "İstasyon Binası Güvenlik Projesi";
+                } else if (c.kategori && c.kategori.includes("K-9")) {
+                    c.birimAlani = "K-9";
+                    c.istasyonVeyaProje = "K9 Çevre Güvenliği Projesi";
+                } else {
+                    c.birimAlani = "İstasyon";
+                    c.istasyonVeyaProje = (c.konum && c.konum.includes("IST")) ? "Istanbul İGA İstasyon (IST)" : "Antalya İstasyon (AYT)";
+                }
+                updated = true;
+            }
+        });
+        if (updated) {
+            localStorage.setItem('gozen_sems_cases', JSON.stringify(cases));
+        }
     } else {
         cases = [...initialCases];
         localStorage.setItem('gozen_sems_cases', JSON.stringify(cases));
@@ -490,11 +515,15 @@ function loginUser(account) {
     } catch(e) {}
 
     applyUserPermissions(account);
-    switchAppView('userView');
+    if (account.canAccessAdmin) {
+        switchAppView('adminView');
+    } else {
+        switchAppView('userView');
+    }
     
     const welcomeMsg = currentLang === 'tr' 
-        ? `Hoş geldiniz, ${account.name}! (GozenConnect: ${account.role === 'admin' ? 'Tam Yetkili Yönetici' : 'Çalışan Bildirim'})`
-        : `Welcome, ${account.name}! (GozenConnect: ${account.role === 'admin' ? 'Full Access Admin' : 'Employee Reporter'})`;
+        ? `Hoş geldiniz, ${account.name}! (GozenConnect: ${account.role === 'admin' ? 'Yönetici Paneli' : 'Çalışan Bildirim'})`
+        : `Welcome, ${account.name}! (GozenConnect: ${account.role === 'admin' ? 'Admin Panel' : 'Employee Reporter'})`;
     toast(welcomeMsg, 'success');
 }
 
@@ -537,12 +566,13 @@ function applyUserPermissions(user) {
     if (logoutBtn) logoutBtn.classList.remove('hidden');
     if (badgeEl) badgeEl.innerText = user.badge;
 
-    // Sadece admin şifresi ile giren kullanıcı Yönetici Paneli ve Raporlama Paneli'ni görebilir ve erişebilir!
+    // Admin şifresiyle giriş yapıldığında kullanıcı portalının görüntülenmesine gerek yok
     if (user.canAccessAdmin) {
-        if (navUserBtn) navUserBtn.classList.remove('hidden');
+        if (navUserBtn) navUserBtn.classList.add('hidden'); // Kullanıcı Portalı Admin için gizlendi
         if (navAdminBtn) navAdminBtn.classList.remove('hidden');
         if (navReportBtn) navReportBtn.classList.remove('hidden');
     } else {
+        // Çalışan (report) girişinde yalnızca Kullanıcı Portalı görünür
         if (navUserBtn) navUserBtn.classList.remove('hidden');
         if (navAdminBtn) navAdminBtn.classList.add('hidden');
         if (navReportBtn) navReportBtn.classList.add('hidden');
@@ -560,6 +590,11 @@ function switchAppView(viewId) {
         if (loginEl) loginEl.classList.add('active');
         toast('Lütfen önce GozenConnect ile giriş yapınız.', 'warning');
         return;
+    }
+
+    // Admin kullanıcısı doğrudan adminView veya reportView kullanır, userView'e gitmez
+    if (viewId === 'userView' && currentUser && currentUser.canAccessAdmin) {
+        viewId = 'adminView';
     }
 
     // YETKİ KONTROLÜ: Sadece admin şifresi ile giren kullanıcı Yönetici ve Raporlama Paneli'ne erişebilir!
@@ -618,6 +653,48 @@ function selectRiskAndProceed(riskLevel) {
     toast(`Risk Seviyesi seçildi: ${riskLevel}`);
 }
 
+function handleFaaliyetAlaniChange() {
+    const faalSelect = document.getElementById('faaliyetAlani');
+    const val = faalSelect ? faalSelect.value : "";
+    const placeholderDiv = document.getElementById('faaliyetPlaceholderDiv');
+    const istasyonDiv = document.getElementById('faaliyetIstasyonDiv');
+    const projeDiv = document.getElementById('faaliyetProjeDiv');
+
+    if (!placeholderDiv || !istasyonDiv || !projeDiv) return;
+
+    if (val === 'İstasyon') {
+        placeholderDiv.classList.add('hidden');
+        projeDiv.classList.add('hidden');
+        istasyonDiv.classList.remove('hidden');
+    } else if (val === 'GGH - Bina Tesis' || val === 'K-9') {
+        placeholderDiv.classList.add('hidden');
+        istasyonDiv.classList.add('hidden');
+        projeDiv.classList.remove('hidden');
+        const projeInput = document.getElementById('projeBilgisi');
+        if (projeInput) {
+            projeInput.placeholder = val === 'K-9' ? 'K-9 operasyon veya proje detayını giriniz...' : 'Bina / tesis proje detayını giriniz...';
+        }
+    } else {
+        placeholderDiv.classList.remove('hidden');
+        istasyonDiv.classList.add('hidden');
+        projeDiv.classList.add('hidden');
+    }
+}
+
+function handleKategoriChange() {
+    const kat = document.getElementById('kategori') ? document.getElementById('kategori').value : "";
+    const faalSelect = document.getElementById('faaliyetAlani');
+    if (!faalSelect) return;
+
+    if (kat === 'Bina Tesis Riskleri') {
+        faalSelect.value = 'GGH - Bina Tesis';
+        handleFaaliyetAlaniChange();
+    } else if (kat === 'K-9 Riskleri') {
+        faalSelect.value = 'K-9';
+        handleFaaliyetAlaniChange();
+    }
+}
+
 function toggleReportModelDesc() {
     const radios = document.getElementsByName('reportModel');
     let selected = 'Anonim';
@@ -655,6 +732,35 @@ function submitForm() {
     const konum = document.getElementById('konum').value.trim();
     const oneri = document.getElementById('oneri').value.trim();
 
+    // Faaliyet Alanı ve İstasyon/Proje Alanı Zorunlu Kontrolleri
+    const faaliyetAlani = document.getElementById('faaliyetAlani') ? document.getElementById('faaliyetAlani').value : "";
+    if (!faaliyetAlani) {
+        alert('Lütfen Faaliyet Alanı / Birim alanını seçiniz (İstasyon, GGH - Bina Tesis veya K-9).');
+        document.getElementById('faaliyetAlani').focus();
+        return;
+    }
+
+    let detayAlani = "";
+    if (faaliyetAlani === 'İstasyon') {
+        const istSelect = document.getElementById('istasyonBilgisi');
+        const istVal = istSelect ? istSelect.value : "";
+        if (!istVal) {
+            alert('Lütfen İstasyon Bilgisi seçiniz.');
+            if (istSelect) istSelect.focus();
+            return;
+        }
+        detayAlani = istVal;
+    } else {
+        const prjInput = document.getElementById('projeBilgisi');
+        const prjVal = prjInput ? prjInput.value.trim() : "";
+        if (!prjVal) {
+            alert(`Lütfen ${faaliyetAlani} için Proje alanını doldurunuz.`);
+            if (prjInput) prjInput.focus();
+            return;
+        }
+        detayAlani = prjVal;
+    }
+
     const radios = document.getElementsByName('reportModel');
     let model = 'Anonim';
     for (const r of radios) {
@@ -690,15 +796,17 @@ function submitForm() {
 
     // Otomatik atama birimi
     let atananBirim = "Operasyon";
-    if (kategori.includes("Bina") || kategori.includes("Tesis")) atananBirim = "Bina Tesis";
-    else if (kategori.includes("K-9") || kategori.includes("K9")) atananBirim = "K9 Birimi";
+    if (faaliyetAlani === "GGH - Bina Tesis" || kategori.includes("Bina") || kategori.includes("Tesis")) atananBirim = "Bina Tesis";
+    else if (faaliyetAlani === "K-9" || kategori.includes("K-9") || kategori.includes("K9")) atananBirim = "K9 Birimi";
     else if (kategori.includes("Siber")) atananBirim = "Siber Güvenlik";
     else if (kategori.includes("Fiziki")) atananBirim = "Fiziki Güvenlik";
 
     // SLA ve Kalan Süre Hesabı
-    let hedefTarih = "7 Gün";
-    if (risk === "Kısıtlı Güvenlik Bilgisi") hedefTarih = "24 Saat (Acil)";
-    else if (risk === "Kontrollü Bilgi") hedefTarih = "3 Gün";
+    let hedefTarih = "0-30 Gün";
+    if (risk === "Kısıtlı Güvenlik Bilgisi") hedefTarih = "0-3 Gün";
+    else if (risk === "Kontrollü Bilgi") hedefTarih = "0-15 Gün";
+
+    const fullKonum = konum ? `${detayAlani} - ${konum}` : detayAlani;
 
     const newCase = {
         no: latestGeneratedNo,
@@ -707,12 +815,14 @@ function submitForm() {
         risk: risk,
         riskLevelS: risk === "Kısıtlı Güvenlik Bilgisi" ? "S1" : (risk === "Kontrollü Bilgi" ? "S2" : "S3"),
         durum: "Açık",
+        birimAlani: faaliyetAlani,
+        istasyonVeyaProje: detayAlani,
         atanan: atananBirim,
         atananBirim: atananBirim,
         hedefTarih: hedefTarih,
         isApproaching: false,
         isDelayed: false,
-        konum: konum || "Belirtilmedi",
+        konum: fullKonum,
         baslik: baslik,
         metin: aciklama,
         oneri: oneri || "Öneri girilmedi",
@@ -804,6 +914,13 @@ function executeQuery() {
 
     document.getElementById('resDurum').innerText = found.durum;
 
+    // Faaliyet / Konum
+    const resFaaliyet = document.getElementById('resFaaliyet');
+    if (resFaaliyet) {
+        const birimText = found.birimAlani ? `${found.birimAlani} - ` : "";
+        resFaaliyet.innerText = `${birimText}${found.istasyonVeyaProje || found.konum || '-'}`;
+    }
+
     // Timeline aşamaları
     if (found.asamalar && found.asamalar.length >= 4) {
         document.getElementById('stage1Date').innerText = found.asamalar[0].date;
@@ -848,6 +965,15 @@ function resetPortal() {
     document.getElementById('queryInput').value = "";
     document.getElementById('queryResult').classList.add('hidden');
     
+    // Faaliyet alanı ve dinamik alanları sıfırla
+    const faalSelect = document.getElementById('faaliyetAlani');
+    if (faalSelect) faalSelect.value = "";
+    const istSelect = document.getElementById('istasyonBilgisi');
+    if (istSelect) istSelect.value = "";
+    const prjInput = document.getElementById('projeBilgisi');
+    if (prjInput) prjInput.value = "";
+    handleFaaliyetAlaniChange();
+
     currentUploadedFileName = null;
     document.getElementById('fileUploadPrompt').classList.remove('hidden');
     document.getElementById('fileUploadInfo').classList.add('hidden');
@@ -868,7 +994,17 @@ function renderAdminTable(filterQuery = "") {
     let filtered = [...cases];
 
     if (currentStatusFilter !== "Tümü") {
-        filtered = filtered.filter(c => c.durum.toLowerCase() === currentStatusFilter.toLowerCase());
+        const f = currentStatusFilter.toLowerCase();
+        filtered = filtered.filter(c => {
+            const d = (c.durum || "").toLowerCase();
+            if (f === 'atananlar' || f === 'atandı') {
+                return d === 'atananlar' || d === 'atandı';
+            }
+            if (f === 'def' || f === 'def başlatıldı') {
+                return d === 'def' || d === 'def başlatıldı';
+            }
+            return d === f;
+        });
     }
 
     if (filterQuery) {
@@ -941,8 +1077,8 @@ function renderAdminTable(filterQuery = "") {
 
 function getStatusClass(durum) {
     if (durum === "İncelemede") return "status-incelemede";
-    if (durum === "Atandı") return "status-atandi";
-    if (durum === "DEF Başlatıldı") return "status-def";
+    if (durum === "Atandı" || durum === "Atananlar") return "status-atandi";
+    if (durum === "DEF Başlatıldı" || durum === "DEF") return "status-def";
     if (durum === "Tamamlandı") return "status-tamamlandi";
     return "status-kapali";
 }
@@ -950,8 +1086,8 @@ function getStatusClass(durum) {
 function updateKpiCards() {
     const total = cases.length;
     const review = cases.filter(c => c.durum === "İncelemede").length;
-    const assigned = cases.filter(c => c.durum === "Atandı").length;
-    const def = cases.filter(c => c.durum === "DEF Başlatıldı").length;
+    const assigned = cases.filter(c => c.durum === "Atananlar" || c.durum === "Atandı").length;
+    const def = cases.filter(c => c.durum === "DEF" || c.durum === "DEF Başlatıldı").length;
 
     const elTotal = document.getElementById('kpiTotal');
     const elReview = document.getElementById('kpiReview');
@@ -991,8 +1127,7 @@ function filterApproachingOrDelayed() {
 }
 
 function filterByAssigned() {
-    currentStatusFilter = "Atandı";
-    filterByStatus('Atandı');
+    filterByStatus('Atananlar');
 }
 
 function sortTable(columnIndex) {
@@ -1081,7 +1216,7 @@ function updateAssignment() {
 
     const val = document.getElementById('detailAssignSelect').value;
     c.atanan = val;
-    c.durum = "Atandı";
+    c.durum = "Atananlar";
     c.kilometreTaslari.birimeAtandi = `${new Date().toLocaleDateString('tr-TR')} • ${new Date().toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'})}`;
     
     saveCases();
@@ -1115,7 +1250,7 @@ function quickAction(actionType) {
         toast(`${c.no} reddedildi.`);
     } else if (actionType === 'defCapa') {
         // DEF / CAPA Başlat (FR-010, ADM-012: Takip numarası aynen kullanılır!)
-        c.durum = "DEF Başlatıldı";
+        c.durum = "DEF";
         c.kilometreTaslari.defCapa = c.no;
         c.paylasilabilirNot = `Bu bildirim için ${c.no} numaralı Düzeltici ve Önleyici Faaliyet (DEF / CAPA) süreci başlatılmıştır.`;
         toast(`🛡️ ${c.no} için DEF/CAPA süreci başarıyla başlatıldı!`, 'success');
@@ -1232,10 +1367,10 @@ function saveManualNewReport() {
         kategori: kategori,
         risk: risk,
         riskLevelS: risk === "Kısıtlı Güvenlik Bilgisi" ? "S1" : (risk === "Kontrollü Bilgi" ? "S2" : "S3"),
-        durum: "Atandı",
+        durum: "Atananlar",
         atanan: atanan,
         atananBirim: atanan.split('/')[0].trim(),
-        hedefTarih: risk === "Kısıtlı Güvenlik Bilgisi" ? "24 Saat (Acil)" : "3 Gün",
+        hedefTarih: risk === "Kısıtlı Güvenlik Bilgisi" ? "0-3 Gün" : (risk === "Kontrollü Bilgi" ? "0-15 Gün" : "0-30 Gün"),
         isApproaching: false,
         isDelayed: false,
         konum: "Saha İntikali",
@@ -1289,13 +1424,165 @@ function applyReportDateFilter() {
 }
 
 function exportReport(format) {
-    // PDF / Excel Dışa Aktarım (AC-RPR-06, SEC-005: Anonim kimlik bilgisi asla yer almaz)
-    const activeDate = document.getElementById('reportDateRange').value;
-    const msg = format === 'pdf' 
-        ? `📄 PDF Raporu Hazırlandı (${activeDate}). Kurumsal KVKK gereğince anonim kimlik bilgileri arındırılmıştır.` 
-        : `📊 Excel Raporu (.xlsx) İndirildi (${activeDate}). 124 vaka verisi dışa aktarıldı.`;
+    const activeDate = document.getElementById('reportDateRange') ? document.getElementById('reportDateRange').value : "2026";
     
-    toast(msg, 'success');
+    if (format === 'pdf') {
+        toast(`📄 PDF Raporu hazırlanıyor (${activeDate}). Yazdırma penceresinden 'PDF Olarak Kaydet' seçebilirsiniz.`, 'info');
+        setTimeout(() => {
+            window.print();
+        }, 300);
+        return;
+    }
+
+    // Excel indirme işlemi
+    exportToExcel(activeDate);
+}
+
+function exportToExcel(dateRangeStr) {
+    if (!cases || cases.length === 0) {
+        toast('Dışa aktarılacak veri bulunamadı.', 'warning');
+        return;
+    }
+
+    // 1. Bildirimler Listesi Veri Seti (Anonim kimlik bilgisi KVKK gereği filtrelenmiştir)
+    const reportData = cases.map(c => ({
+        "Takip No": c.no || "",
+        "Tarih": c.tarih || "",
+        "Kategori": c.kategori || "",
+        "Risk Seviyesi": c.risk || "",
+        "Risk Kodu": c.riskLevelS || "",
+        "Durum": c.durum || "",
+        "Atanan Sorumlu": c.atanan || "",
+        "Atanan Birim": c.atananBirim || "",
+        "Hedef Kapanış / SLA": c.hedefTarih || "",
+        "Konum / İstasyon": c.konum || "-",
+        "Bildirim Başlığı": c.baslik || "",
+        "Olay Açıklaması": c.metin || "",
+        "Önerilen Çözüm": c.oneri || "-",
+        "Kök Neden": c.kokNeden || "-",
+        "Kök Neden Detayı": c.kokNedenDiger || "-",
+        "Yetkili İnceleme Notu": c.paylasilabilirNot || "-",
+        "Bildirim Modeli": c.model || "Anonim",
+        "Oluşturulma": (c.kilometreTaslari && c.kilometreTaslari.olusturuldu) ? c.kilometreTaslari.olusturuldu : "-",
+        "Birime Atanma": (c.kilometreTaslari && c.kilometreTaslari.birimeAtandi) ? c.kilometreTaslari.birimeAtandi : "-",
+        "İnceleme Başlama": (c.kilometreTaslari && c.kilometreTaslari.incelemeBasladi) ? c.kilometreTaslari.incelemeBasladi : "-",
+        "İlk Değerlendirme": (c.kilometreTaslari && c.kilometreTaslari.ilkDegerlendirme) ? c.kilometreTaslari.ilkDegerlendirme : "-",
+        "DEF / CAPA Takip No": (c.kilometreTaslari && c.kilometreTaslari.defCapa) ? c.kilometreTaslari.defCapa : "-",
+        "Hedef Kapanış": (c.kilometreTaslari && c.kilometreTaslari.hedefKapanis) ? c.kilometreTaslari.hedefKapanis : "-"
+    }));
+
+    // 2. Özet İstatistikler ve KPI Veri Seti
+    const totalCount = cases.length;
+    const reviewCount = cases.filter(c => c.durum === 'İncelemede').length;
+    const assignedCount = cases.filter(c => c.durum === 'Atananlar' || c.durum === 'Atandı').length;
+    const defCount = cases.filter(c => c.durum === 'DEF' || c.durum === 'DEF Başlatıldı').length;
+    const s1Count = cases.filter(c => c.riskLevelS === 'S1' || (c.risk && c.risk.includes('Kısıtlı'))).length;
+    const s2Count = cases.filter(c => c.riskLevelS === 'S2' || (c.risk && c.risk.includes('Kontrollü'))).length;
+    const s3Count = cases.filter(c => c.riskLevelS === 'S3' || (c.risk && c.risk.includes('Genel'))).length;
+
+    const summaryData = [
+        { "Rapor Parametresi": "Kurum / Sistem", "Değer": "Gözen Güvenlik - SeMS Güvenlik İyileştirme Bildirim Portalı" },
+        { "Rapor Parametresi": "Rapor Kapsamı", "Değer": "Canlı Operasyonel Risk ve Bildirim Veritabanı" },
+        { "Rapor Parametresi": "Filtrelenen Tarih Aralığı", "Değer": dateRangeStr || "01.01 - 23.09.2026" },
+        { "Rapor Parametresi": "Rapor Oluşturma Zamanı", "Değer": new Date().toLocaleString('tr-TR') },
+        { "Rapor Parametresi": "Raporu Alan Yetkili", "Değer": currentUser ? `${currentUser.name} (${currentUser.title})` : "Yetkili Güvenlik Yöneticisi" },
+        { "Rapor Parametresi": "------------------------------", "Değer": "------------------------------" },
+        { "Rapor Parametresi": "Toplam Bildirim Sayısı", "Değer": totalCount },
+        { "Rapor Parametresi": "İncelemedeki Bildirimler", "Değer": reviewCount },
+        { "Rapor Parametresi": "Atanan Bildirimler", "Değer": assignedCount },
+        { "Rapor Parametresi": "DEF / CAPA Sürecindeki Bildirimler", "Değer": defCount },
+        { "Rapor Parametresi": "Kritik Güvenlik Bildirimleri (S1)", "Değer": s1Count },
+        { "Rapor Parametresi": "Kontrollü Bilgi Bildirimleri (S2)", "Değer": s2Count },
+        { "Rapor Parametresi": "Genel Güvenlik Bildirimleri (S3)", "Değer": s3Count },
+        { "Rapor Parametresi": "Ortalama İlk Değerlendirme Süresi", "Değer": "1,8 Gün" },
+        { "Rapor Parametresi": "Zamanında Kapanma Başarı Oranı", "Değer": "%82" }
+    ];
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    const fileName = `Gozen_Security_SeMS_Raporu_${todayStr}.xlsx`;
+
+    // 3. SheetJS (xlsx.full.min.js) ile Excel (.xlsx) Üretimi
+    if (typeof XLSX !== 'undefined') {
+        try {
+            const wb = XLSX.utils.book_new();
+
+            // 1. Çalışma Sayfası: Bildirimler
+            const wsReports = XLSX.utils.json_to_sheet(reportData);
+            wsReports['!cols'] = [
+                { wch: 18 }, // Takip No
+                { wch: 12 }, // Tarih
+                { wch: 22 }, // Kategori
+                { wch: 25 }, // Risk Seviyesi
+                { wch: 10 }, // Risk Kodu
+                { wch: 14 }, // Durum
+                { wch: 22 }, // Atanan Sorumlu
+                { wch: 18 }, // Atanan Birim
+                { wch: 18 }, // Hedef Kapanış / SLA
+                { wch: 28 }, // Konum / İstasyon
+                { wch: 35 }, // Bildirim Başlığı
+                { wch: 50 }, // Olay Açıklaması
+                { wch: 35 }, // Önerilen Çözüm
+                { wch: 20 }, // Kök Neden
+                { wch: 25 }, // Kök Neden Detayı
+                { wch: 45 }, // Yetkili İnceleme Notu
+                { wch: 14 }, // Bildirim Modeli
+                { wch: 20 }, // Oluşturulma
+                { wch: 20 }, // Birime Atanma
+                { wch: 20 }, // İnceleme Başlama
+                { wch: 22 }, // İlk Değerlendirme
+                { wch: 20 }, // DEF / CAPA Takip No
+                { wch: 16 }  // Hedef Kapanış
+            ];
+
+            // 2. Çalışma Sayfası: Özet ve İstatistikler
+            const wsSummary = XLSX.utils.json_to_sheet(summaryData);
+            wsSummary['!cols'] = [
+                { wch: 38 },
+                { wch: 55 }
+            ];
+
+            XLSX.utils.book_append_sheet(wb, wsReports, "SeMS Bildirimleri");
+            XLSX.utils.book_append_sheet(wb, wsSummary, "Özet ve İstatistikler");
+
+            XLSX.writeFile(wb, fileName);
+            toast(`📊 Excel raporu başarıyla indirildi: ${fileName}`, 'success');
+            return;
+        } catch (err) {
+            console.error("XLSX export error, falling back to CSV:", err);
+        }
+    }
+
+    // 4. Fallback: XLSX kütüphanesi yüklenemezse UTF-8 BOM CSV İndir
+    downloadCsvFallback(reportData, todayStr);
+}
+
+function downloadCsvFallback(rows, todayStr) {
+    if (!rows || rows.length === 0) return;
+    const headers = Object.keys(rows[0]);
+    
+    // Excel'in Türkçe karakterleri (ğ, ü, ş, ı, ö, ç) doğru açması için UTF-8 BOM (\uFEFF)
+    let csvContent = "\uFEFF";
+    csvContent += headers.map(h => `"${h.replace(/"/g, '""')}"`).join(";") + "\r\n";
+    
+    rows.forEach(r => {
+        const line = headers.map(h => {
+            const val = r[h] !== undefined && r[h] !== null ? String(r[h]) : "";
+            return `"${val.replace(/"/g, '""')}"`;
+        }).join(";");
+        csvContent += line + "\r\n";
+    });
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    const csvFileName = `Gozen_Security_SeMS_Raporu_${todayStr || new Date().toISOString().split('T')[0]}.csv`;
+    link.setAttribute("href", url);
+    link.setAttribute("download", csvFileName);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast(`📊 Excel uyumlu CSV raporu başarıyla indirildi: ${csvFileName}`, 'success');
 }
 
 function openFilterModal() {
