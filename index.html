@@ -1,0 +1,1544 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gözen Security - SeMS Güvenlik İyileştirme Bildirim Portalı</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gozenNavy: '#0B2545',
+                        gozenNavyDark: '#07172C',
+                        gozenRed: '#E63946',
+                        gozenRedDark: '#C92A37',
+                        gozenBg: '#F4F6F9',
+                        gozenCard: '#FFFFFF',
+                        gozenText: '#1E293B',
+                        gozenMuted: '#64748B'
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="bg-gozenBg text-gozenText font-sans antialiased min-h-screen flex flex-col">
+
+    <!-- ========================================== -->
+    <!-- ÜST GLOBAL GEZİNTİ VE PORTAL DEĞİŞTİRİCİ  -->
+    <!-- ========================================== -->
+    <header class="bg-gozenNavyDark text-white border-b-2 border-gozenRed sticky top-0 z-50 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                
+                <!-- Sol: Kurumsal Kimlik & Logo -->
+                <div class="flex items-center space-x-3">
+                    <div class="bg-white px-3 py-1.5 rounded-lg shadow-sm border border-red-500/30 flex items-center">
+                        <span class="text-gozenRed font-black text-xs sm:text-sm tracking-wider uppercase">GÖZEN SECURITY</span>
+                    </div>
+                    <div class="hidden md:block">
+                        <span class="text-[11px] font-semibold tracking-wider text-slate-300 uppercase block">SeMS PORTALI</span>
+                        <span class="text-xs text-slate-400">Güvenlik İyileştirme & Risk Yönetimi</span>
+                    </div>
+                </div>
+
+                <!-- Orta: Ana Mod Switcher (Kullanıcı / Yönetici / Raporlama) -->
+                <nav id="portalNavGroup" class="hidden flex items-center bg-slate-900/80 p-1 rounded-xl border border-slate-700/60 shadow-inner">
+                    <button onclick="switchAppView('userView')" id="navUserBtn" class="nav-app-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center space-x-1.5 bg-gozenRed text-white shadow-sm">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                        <span data-i18n="navUserPortal">Kullanıcı Portalı</span>
+                    </button>
+                    <button onclick="switchAppView('adminView')" id="navAdminBtn" class="nav-app-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition flex items-center space-x-1.5">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                        <span data-i18n="navAdminPanel">Yönetici Paneli</span>
+                        <span class="bg-red-500/90 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full ml-1">2</span>
+                    </button>
+                    <button onclick="switchAppView('reportView')" id="navReportBtn" class="nav-app-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition flex items-center space-x-1.5">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        <span data-i18n="navReportPanel">Raporlama Paneli</span>
+                    </button>
+                </nav>
+
+                <!-- Sağ: GozenConnect Aktif Kullanıcı, Çıkış & Dil Seçici -->
+                <div class="flex items-center space-x-3">
+                    <div id="sessionUserBox" class="hidden lg:flex items-center space-x-2 bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700 text-[11px]">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span class="text-slate-300">GozenConnect:</span>
+                        <span class="font-semibold text-slate-100" id="sessionUserBadge">Giriş Bekleniyor</span>
+                    </div>
+
+                    <button onclick="handleLogout()" id="btnLogoutBtn" class="hidden bg-slate-800 hover:bg-red-700/80 text-slate-300 hover:text-white px-2.5 py-1 rounded-lg text-xs font-semibold transition border border-slate-700 flex items-center space-x-1">
+                        <span>🚪</span>
+                        <span data-i18n="btnLogout">Çıkış</span>
+                    </button>
+
+                    <!-- TR / EN Çeviri Dili -->
+                    <div class="flex items-center bg-slate-800 px-2 py-1 rounded-lg text-xs border border-slate-700">
+                        <button onclick="setLanguage('tr')" id="langTrBtn" class="font-bold text-red-400 px-1.5 py-0.5 rounded transition">TR 🇹🇷</button>
+                        <span class="text-slate-600">|</span>
+                        <button onclick="setLanguage('en')" id="langEnBtn" class="text-slate-400 hover:text-white px-1.5 py-0.5 rounded transition">EN 🇬🇧</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </header>
+
+    <!-- ANA İÇERİK ALANI -->
+    <main class="flex-grow p-4 sm:p-6 lg:p-8 flex justify-center items-center">
+
+        <!-- ============================================================== -->
+        <!-- GÖRÜNÜM 0: GOZEN CONNECT GİRİŞ VE HOŞ GELDİNİZ EKRANI          -->
+        <!-- ============================================================== -->
+        <div id="loginView" class="view-container active w-full max-w-xl">
+            <div class="bg-gozenCard rounded-3xl shadow-2xl border border-slate-200/80 overflow-hidden">
+                
+                <!-- Gozen Connect Başlık Header -->
+                <div class="bg-gozenNavy text-white p-7 text-center relative border-b-4 border-gozenRed">
+                    <div class="flex justify-center mb-3">
+                        <div class="bg-white px-6 py-2 rounded-xl shadow-sm border border-red-500/20 flex items-center justify-center">
+                            <img src="gozsec.svg" alt="Gözen Security" class="h-9 w-auto object-contain" />
+                        </div>
+                    </div>
+                    
+                    <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-[11px] text-slate-300 mb-1 font-mono">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span>SSO / IAM v2.4</span>
+                    </div>
+                    
+                    <h1 class="text-2xl font-black text-slate-100 tracking-wide mt-1">Gozen Connect</h1>
+                    <p class="text-xs text-slate-300 mt-1 max-w-md mx-auto" data-i18n="loginConnectDesc">
+                        Kurumsal Kimlik Doğrulama &amp; Yetkilendirme Servisi
+                    </p>
+                </div>
+
+                <div class="p-6 sm:p-8 space-y-6">
+
+                    <!-- Hoş Geldiniz & Bilgilendirme -->
+                    <div class="text-center space-y-1.5">
+                        <h2 class="text-base font-bold text-gozenNavy" data-i18n="loginWelcomeTitle">Portala Giriş Yapınız</h2>
+                        <p class="text-xs text-slate-500 leading-relaxed" data-i18n="loginWelcomeDesc">
+                            SeMS Güvenlik İyileştirme Bildirim Portalı'na erişmek için lütfen GozenConnect kurumsal hesabınızla oturum açınız.
+                        </p>
+                    </div>
+
+                    <!-- Hata Bildirim Alanı -->
+                    <div id="loginErrorAlert" class="hidden bg-red-50 border-l-4 border-red-500 p-3 rounded-r-xl text-xs text-red-700 font-semibold flex items-center space-x-2">
+                        <span>⚠️</span>
+                        <span id="loginErrorText">Kullanıcı adı veya şifre hatalı! Lütfen bilgilerinizi kontrol ediniz.</span>
+                    </div>
+
+                    <!-- Giriş Formu -->
+                    <form onsubmit="handleLoginSubmit(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="lblUsername">Kullanıcı Adı *</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">👤</span>
+                                <input type="text" id="loginUsername" required placeholder="Kullanıcı adınız (report / admin)" 
+                                    class="w-full pl-10 pr-3.5 py-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-gozenNavy focus:ring-1 focus:ring-gozenNavy shadow-xs font-medium">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="lblPassword">Şifre *</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">🔑</span>
+                                <input type="password" id="loginPassword" required placeholder="Şifreniz (1234)" 
+                                    class="w-full pl-10 pr-3.5 py-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-gozenNavy focus:ring-1 focus:ring-gozenNavy shadow-xs font-medium">
+                            </div>
+                        </div>
+
+                        <button type="submit" id="loginSubmitBtn" class="w-full bg-gozenNavy hover:bg-slate-800 text-white font-bold py-3.5 px-4 rounded-xl transition text-sm shadow-md flex items-center justify-center space-x-2 hover-lift">
+                            <span data-i18n="btnLoginSubmit">GozenConnect ile Giriş Yap ➜</span>
+                        </button>
+                    </form>
+
+                    <!-- Hızlı Demo Giriş Kartları -->
+                    <div class="space-y-2.5 pt-2 border-t border-slate-100">
+                        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block text-center" data-i18n="lblDemoAccounts">Test ve Değerlendirme Hesapları</span>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <!-- 1. Hesap: report / 1234 -->
+                            <div onclick="quickLogin('report', '1234')" class="p-3.5 rounded-2xl border-2 border-slate-200 hover:border-blue-500 bg-slate-50 hover:bg-blue-50/50 cursor-pointer transition group shadow-2xs">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-bold text-slate-800 group-hover:text-blue-700">1. Çalışan Hesabı</span>
+                                    <span class="text-[10px] font-bold bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded">User</span>
+                                </div>
+                                <div class="mt-1.5 text-[11px] text-slate-600 font-mono">
+                                    Kullanıcı: <strong>report</strong><br>
+                                    Şifre: <strong>1234</strong>
+                                </div>
+                                <div class="mt-2 text-[10px] text-slate-500 leading-tight">
+                                    Yetki: <strong class="text-slate-700">Yalnızca Kullanıcı Portalı</strong> (Yeni bildirim &amp; sorgulama)
+                                </div>
+                                <div class="mt-2.5 text-right">
+                                    <span class="text-[11px] font-bold text-blue-600 group-hover:underline">Giriş Yap ➜</span>
+                                </div>
+                            </div>
+
+                            <!-- 2. Hesap: admin / 1234 -->
+                            <div onclick="quickLogin('admin', '1234')" class="p-3.5 rounded-2xl border-2 border-slate-200 hover:border-red-500 bg-slate-50 hover:bg-red-50/50 cursor-pointer transition group shadow-2xs">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-bold text-slate-800 group-hover:text-red-700">2. Yönetici Hesabı</span>
+                                    <span class="text-[10px] font-bold bg-red-100 text-red-800 px-1.5 py-0.5 rounded">Admin</span>
+                                </div>
+                                <div class="mt-1.5 text-[11px] text-slate-600 font-mono">
+                                    Kullanıcı: <strong>admin</strong><br>
+                                    Şifre: <strong>1234</strong>
+                                </div>
+                                <div class="mt-2 text-[10px] text-slate-500 leading-tight">
+                                    Yetki: <strong class="text-red-700">Tam Yetki</strong> (Yönetici Paneli, Raporlama Paneli ve Kullanıcı Portalı)
+                                </div>
+                                <div class="mt-2.5 text-right">
+                                    <span class="text-[11px] font-bold text-red-600 group-hover:underline">Giriş Yap ➜</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Güvenlik & KVKK Notu -->
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-[10px] text-slate-500 text-center leading-relaxed">
+                        🛡️ <strong>GozenConnect Kurumsal Güvenlik:</strong> Aktif çalışma durumu İK sistemleri üzerinden anlık doğrulanır. Anonim bildirim tercih edildiğinde kimlik bilgileriniz hiçbir vaka kaydıyla ilişkilendirilmez.
+                    </div>
+
+                </div>
+
+                <div class="bg-slate-50 px-6 py-3 border-t border-slate-100 text-center text-[10px] text-slate-400">
+                    © 2026 Gözen Security • GozenConnect Kurumsal Erişim Yönetimi
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- GÖRÜNÜM 1: KULLANICI PORTALI (Şekil 1, 2, 3, 4, 5)            -->
+        <!-- ============================================================== -->
+        <div id="userView" class="view-container w-full max-w-4xl">
+            <div class="bg-gozenCard rounded-3xl shadow-xl border border-slate-200/80 overflow-hidden">
+                
+                <!-- Portal Başlık Header (Şekil 1 Görünümü) -->
+                <div class="bg-gozenNavy text-white p-6 sm:p-8 text-center relative border-b-4 border-gozenRed">
+                    <div class="flex justify-center mb-3">
+                        <div class="bg-white px-6 py-2 rounded-xl shadow-sm border border-red-500/20 flex items-center justify-center">
+                            <img src="gozsec.svg" alt="Gözen Security" class="h-9 w-auto object-contain" />
+                        </div>
+                    </div>
+                    <div class="text-[11px] uppercase tracking-widest text-slate-300 font-semibold mb-1" data-i18n="portalBadge">SeMS GÜVENLİK İYİLEŞTİRME BİLDİRİM PORTALI</div>
+                    <h1 class="text-xl sm:text-2xl font-bold text-slate-100" data-i18n="portalTitle">Güvenlik Risk ve Ramak Kala Bildirim Sistemi</h1>
+                    <div class="mt-2 inline-flex items-center gap-1.5 text-xs text-emerald-300 bg-emerald-950/60 border border-emerald-500/30 px-3 py-1 rounded-full">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                        <span data-i18n="authVerified">GozenConnect Doğrulandı: Bildirim Yetkisi Aktif</span>
+                    </div>
+                </div>
+
+                <div class="p-6 sm:p-8">
+
+                    <!-- ADIM 1: HOŞ GELDİNİZ (Şekil 1) -->
+                    <div id="step1" class="step-page active space-y-6">
+                        <div class="text-center max-w-2xl mx-auto space-y-2">
+                            <h2 class="text-xl font-bold text-gozenNavy" data-i18n="welcomeTitle">Hoş Geldiniz</h2>
+                            <p class="text-sm text-slate-600 font-medium leading-relaxed" data-i18n="welcomeDesc">
+                                Bu portal; güvenlik risklerini, ramak kala olaylarını ve iyileştirme önerilerini güvenle paylaşabilmeniz amacıyla oluşturulmuştur.
+                            </p>
+                            <!-- Kurumsal Onaylı Güvence & Slogan (FR-019) -->
+                            <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3 text-xs text-slate-600 mt-3 text-left flex items-start space-x-2">
+                                <span class="text-gozenRed text-base leading-none">🛡️</span>
+                                <div>
+                                    <span class="font-bold text-slate-800" data-i18n="commitmentTitle">Kurumsal Yaptırım Uygulamama Taahhüdü:</span>
+                                    <p class="text-[11px] text-slate-500 mt-0.5" data-i18n="commitmentDesc">
+                                        İyi niyetle yapılan emniyet ve güvenlik bildirimleri nedeniyle hiçbir çalışana cezai veya idari yaptırım uygulanmaz. 
+                                        <strong>"Her bildirim daha güvenli bir gelecek için önemlidir."</strong>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2 Temel Kart (%100 Anonim & Takip Numarası) -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                            <div class="bg-slate-50 border-l-4 border-gozenNavy p-4 rounded-r-2xl shadow-sm hover-lift">
+                                <div class="text-sm font-bold text-gozenNavy flex items-center space-x-1.5">
+                                    <span>🔒</span>
+                                    <span data-i18n="anonTitle">%100 Anonim veya Gizli Bildirim</span>
+                                </div>
+                                <p class="text-xs text-slate-600 mt-1.5 leading-relaxed" data-i18n="anonDesc">
+                                    Anonim modelde kimlik bilgisi sorgulanmaz veya kaydedilmez. Gizli modelde ise yalnızca yetkili yöneticiler görür.
+                                </p>
+                            </div>
+                            <div class="bg-red-50/50 border-l-4 border-gozenRed p-4 rounded-r-2xl shadow-sm hover-lift">
+                                <div class="text-sm font-bold text-red-800 flex items-center space-x-1.5">
+                                    <span>📌</span>
+                                    <span data-i18n="trackingTitle">Takip Numarası</span>
+                                </div>
+                                <p class="text-xs text-red-700 mt-1.5 leading-relaxed" data-i18n="trackingDesc">
+                                    SR-YYYY-NNNNNN biçiminde oluşturulacak otomatik numara ile süreç şeffaf biçimde izlenebilir.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Butonlar -->
+                        <div class="flex flex-col sm:flex-row gap-3 pt-3">
+                            <button onclick="changeStep(2)" class="w-full bg-gozenNavy hover:bg-slate-800 text-white font-bold py-3.5 px-6 rounded-xl transition text-sm tracking-wide shadow-md flex items-center justify-center space-x-2 hover-lift">
+                                <span data-i18n="btnNewReport">Yeni Bildirim Yap ></span>
+                            </button>
+                            <button onclick="changeStep(5)" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 px-6 rounded-xl transition text-sm tracking-wide flex items-center justify-center space-x-2">
+                                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                <span data-i18n="btnQueryStatus">Bildirim Durumu Sorgula</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ADIM 2: BİLGİ RİSK SEVİYESİ SEÇİMİ (Şekil 2 & Bölüm 3.2) -->
+                    <div id="step2" class="step-page space-y-6">
+                        <div>
+                            <h2 class="text-lg font-bold text-gozenNavy" data-i18n="riskSelectTitle">Bilgi Risk Seviyesini Seçiniz</h2>
+                            <p class="text-xs text-slate-500 mt-1" data-i18n="riskSelectSubtitle">Bildirim için uygun bilgi risk seviyesini tıklayınız.</p>
+                        </div>
+
+                        <div class="space-y-3.5">
+                            <!-- 1. GENEL (Yeşil) -->
+                            <div onclick="selectRiskAndProceed('Genel')" class="p-4 rounded-2xl border-2 border-emerald-200 bg-emerald-50/50 flex flex-col sm:flex-row sm:items-center justify-between cursor-pointer hover:bg-emerald-100/60 hover:border-emerald-400 transition group hover-lift">
+                                <div class="flex items-start sm:items-center space-x-3">
+                                    <span class="w-32 text-center px-3 py-1.5 rounded-lg text-xs font-bold uppercase bg-emerald-600 text-white shrink-0 shadow-sm" data-i18n="riskGenelBadge">GENEL</span>
+                                    <div>
+                                        <p class="text-xs text-slate-700 font-medium" data-i18n="riskGenelDesc">Güvenlik açısından hassasiyet taşımayan ve yetkisiz kişilerin de erişiminin risk oluşturmayacağı bilgiler.</p>
+                                        <span class="text-[11px] text-emerald-700 font-semibold mt-0.5 inline-block">SLA: 7 Gün</span>
+                                    </div>
+                                </div>
+                                <span class="text-xs font-bold text-emerald-700 whitespace-nowrap mt-2 sm:mt-0 ml-auto group-hover:translate-x-1 transition-transform flex items-center" data-i18n="btnSelectAndProceed">Seç ve İlerle &gt;</span>
+                            </div>
+
+                            <!-- 2. KONTROLLÜ BİLGİ (Turuncu/Sarı) -->
+                            <div onclick="selectRiskAndProceed('Kontrollü Bilgi')" class="p-4 rounded-2xl border-2 border-amber-200 bg-amber-50/50 flex flex-col sm:flex-row sm:items-center justify-between cursor-pointer hover:bg-amber-100/60 hover:border-amber-400 transition group hover-lift">
+                                <div class="flex items-start sm:items-center space-x-3">
+                                    <span class="w-32 text-center px-3 py-1.5 rounded-lg text-xs font-bold uppercase bg-amber-600 text-white shrink-0 shadow-sm" data-i18n="riskKontrolluBadge">KONTROLLÜ BİLGİ</span>
+                                    <div>
+                                        <p class="text-xs text-slate-700 font-medium" data-i18n="riskKontrolluDesc">Gözen Güvenlik faaliyetleri ile ilgili olup, görev gereği kurum içerisinde kullanılması gereken bilgiler.</p>
+                                        <span class="text-[11px] text-amber-700 font-semibold mt-0.5 inline-block">SLA: 1 - 3 Gün</span>
+                                    </div>
+                                </div>
+                                <span class="text-xs font-bold text-amber-700 whitespace-nowrap mt-2 sm:mt-0 ml-auto group-hover:translate-x-1 transition-transform flex items-center" data-i18n="btnSelectAndProceed">Seç ve İlerle &gt;</span>
+                            </div>
+
+                            <!-- 3. KISITLI GÜVENLİK BİLGİSİ (Kırmızı) -->
+                            <div onclick="selectRiskAndProceed('Kısıtlı Güvenlik Bilgisi')" class="p-4 rounded-2xl border-2 border-red-200 bg-red-50/60 flex flex-col sm:flex-row sm:items-center justify-between cursor-pointer hover:bg-red-100/80 hover:border-red-400 transition group hover-lift">
+                                <div class="flex items-start sm:items-center space-x-3">
+                                    <span class="w-32 text-center px-3 py-1.5 rounded-lg text-xs font-bold uppercase bg-red-600 text-white shrink-0 shadow-sm" data-i18n="riskKisitliBadge">KISITLI GÜVENLİK BİLGİSİ</span>
+                                    <div>
+                                        <p class="text-xs text-slate-700 font-medium" data-i18n="riskKisitliDesc">Güvenlik açısından risk oluşturabilecek veya güvenlik tedbirlerini riske atabilecek bilgiler.</p>
+                                        <span class="text-[11px] text-red-700 font-semibold mt-0.5 inline-block">SLA: 24 Saat (Öncelikli Eskalasyon)</span>
+                                    </div>
+                                </div>
+                                <span class="text-xs font-bold text-red-700 whitespace-nowrap mt-2 sm:mt-0 ml-auto group-hover:translate-x-1 transition-transform flex items-center" data-i18n="btnSelectAndProceed">Seç ve İlerle &gt;</span>
+                            </div>
+                        </div>
+
+                        <div class="pt-3">
+                            <button onclick="changeStep(1)" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 px-4 rounded-xl transition text-sm flex items-center justify-center space-x-1">
+                                <span data-i18n="btnBack">&lt; Geri</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ADIM 3: BİLDİRİM FORMU (Şekil 3 & Bölüm 3.3) -->
+                    <div id="step3" class="step-page space-y-6">
+                        
+                        <!-- Bildirim Modeli Seçimi: Anonim vs Gizli (FR-017) -->
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2" data-i18n="lblReportModel">Bildirim Modeli Seçimi *</label>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <label class="flex items-start p-3 bg-white rounded-xl border border-slate-200 cursor-pointer hover:border-gozenNavy transition">
+                                    <input type="radio" name="reportModel" value="Anonim" checked class="mt-0.5 text-gozenNavy focus:ring-gozenNavy" onchange="toggleReportModelDesc()">
+                                    <div class="ml-2.5">
+                                        <span class="text-xs font-bold text-gozenNavy block" data-i18n="modelAnonTitle">🔒 %100 Anonim Bildirim</span>
+                                        <span class="text-[11px] text-slate-500" data-i18n="modelAnonDesc">Kimlik bilgileriniz hiçbir vaka kaydına veya inceleme ekranına aktarılmaz.</span>
+                                    </div>
+                                </label>
+                                <label class="flex items-start p-3 bg-white rounded-xl border border-slate-200 cursor-pointer hover:border-gozenNavy transition">
+                                    <input type="radio" name="reportModel" value="Gizli" class="mt-0.5 text-gozenNavy focus:ring-gozenNavy" onchange="toggleReportModelDesc()">
+                                    <div class="ml-2.5">
+                                        <span class="text-xs font-bold text-slate-800 block" data-i18n="modelConfTitle">🛡️ Gizli Bildirim</span>
+                                        <span class="text-[11px] text-slate-500" data-i18n="modelConfDesc">Kimliğiniz doğrulanır; yalnızca en üst yetkili güvenlik direktörü görebilir.</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Kategori ve Önem Derecesi -->
+                        <div class="space-y-4">
+                            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="secCategoryRisk">Kategori ve Önem Derecesi</h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1" data-i18n="lblCategory">Kategori *</label>
+                                    <select id="kategori" class="w-full rounded-xl border border-slate-200 p-3 bg-white text-sm outline-none focus:border-gozenNavy focus:ring-1 focus:ring-gozenNavy shadow-sm">
+                                        <option value="Fiziki Güvenlik">Fiziki Güvenlik</option>
+                                        <option value="Siber Güvenlik / Bilgi Güvenliği">Siber Güvenlik / Bilgi Güvenliği</option>
+                                        <option value="İç Tehdit">İç Tehdit</option>
+                                        <option value="İş Güvenliği">İş Güvenliği</option>
+                                        <option value="İşe Alım Süreci Riskleri">İşe Alım Süreci Riskleri</option>
+                                        <option value="Tesis / Altyapı Güvenliği">Tesis / Altyapı Güvenliği</option>
+                                        <option value="Prosedür / İşleyiş Düzenlemesi">Prosedür / İşleyiş Düzenlemesi</option>
+                                        <option value="Operasyon">Operasyon</option>
+                                        <option value="Bina Tesis Riskleri">Bina Tesis Riskleri</option>
+                                        <option value="K-9 Riskleri">K-9 Riskleri</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1" data-i18n="lblRiskLevel">Bilgi Risk Seviyesi *</label>
+                                    <select id="risk" class="w-full rounded-xl border border-slate-200 p-3 bg-white text-sm outline-none focus:border-gozenNavy focus:ring-1 focus:ring-gozenNavy shadow-sm font-semibold">
+                                        <option value="Genel" class="text-emerald-700">Genel (SLA: 7 Gün)</option>
+                                        <option value="Kontrollü Bilgi" class="text-amber-700">Kontrollü Bilgi (SLA: 1-3 Gün)</option>
+                                        <option value="Kısıtlı Güvenlik Bilgisi" class="text-red-700">Kısıtlı Güvenlik Bilgisi (SLA: 24 Saat)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Olay Detayları -->
+                        <div class="space-y-4">
+                            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="secIncidentDetails">Olay Detayları</h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1" data-i18n="lblIncidentDate">Olay Tarihi *</label>
+                                    <input type="date" id="olayTarihi" class="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none focus:border-gozenNavy focus:ring-1 focus:ring-gozenNavy shadow-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1" data-i18n="lblLocation">İlgili Yer (İsteğe Bağlı)</label>
+                                    <input type="text" id="konum" placeholder="Örn: Apron, Terminal 2, Kargo" class="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none focus:border-gozenNavy focus:ring-1 focus:ring-gozenNavy shadow-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1" data-i18n="lblSubject">Bildirim Başlığı *</label>
+                                    <input type="text" id="baslik" placeholder="Kısa ve net başlık" class="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none focus:border-gozenNavy focus:ring-1 focus:ring-gozenNavy shadow-sm">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1" data-i18n="lblDescription">Açıklama / Bildiriminiz *</label>
+                                <textarea id="aciklama" rows="3" placeholder="Durumu net biçimde açıklayınız..." class="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none focus:border-gozenNavy focus:ring-1 focus:ring-gozenNavy resize-none shadow-sm"></textarea>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1" data-i18n="lblSolution">Önerilen Çözüm (İsteğe Bağlı)</label>
+                                <textarea id="oneri" rows="2" placeholder="Varsa iyileştirme önerinizi yazınız..." class="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none focus:border-gozenNavy focus:ring-1 focus:ring-gozenNavy resize-none shadow-sm"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Dosya Yükleme & E-Posta Bildirim Tercihi -->
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1" data-i18n="lblFileUpload">Fotoğraf veya Destekleyici Dosya Ekle</label>
+                                <div class="flex flex-col items-center justify-center w-full h-24 border-2 border-slate-200 border-dashed rounded-2xl cursor-pointer bg-slate-50 hover:bg-slate-100 transition relative">
+                                    <input type="file" id="fileUpload" class="absolute inset-0 opacity-0 cursor-pointer" onchange="handleFileSelect(event)">
+                                    <div class="text-center" id="fileUploadPrompt">
+                                        <span class="text-xs text-slate-600 font-semibold flex items-center justify-center gap-1">
+                                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                            <span data-i18n="fileUploadText">📷 Fotoğraf Çek veya Belge Yükle (Maks 10MB)</span>
+                                        </span>
+                                        <p class="text-[10px] text-slate-400 mt-1" data-i18n="fileUploadHint">PNG, JPG, PDF, DOCX formatları desteklenir. Güvenlik taramasından geçirilir.</p>
+                                    </div>
+                                    <div id="fileUploadInfo" class="hidden text-xs text-gozenNavy font-bold"></div>
+                                </div>
+                            </div>
+
+                            <!-- Bildirim Geri Bildirim E-postası (Opsiyonel / BR-011) -->
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex items-center justify-between">
+                                <div class="text-xs">
+                                    <span class="font-semibold text-slate-700" data-i18n="lblEmailFeedback">Gelişmelerden E-posta ile haberdar olmak ister misiniz?</span>
+                                    <p class="text-[10px] text-slate-400" data-i18n="emailFeedbackHint">Anonim modelde e-posta adresi vakadan ayrı tutulur, kimliğiniz korunur.</p>
+                                </div>
+                                <input type="email" id="feedbackEmail" placeholder="ornek@email.com (İsteğe bağlı)" class="w-64 rounded-lg border border-slate-200 p-2 text-xs outline-none focus:border-gozenNavy">
+                            </div>
+
+                            <!-- İyi Niyet Beyanı -->
+                            <div class="flex items-start bg-amber-50/40 p-3 rounded-xl border border-amber-200/50">
+                                <input type="checkbox" id="beyan" class="mt-0.5 rounded border-slate-300 text-gozenNavy accent-gozenNavy focus:ring-gozenNavy">
+                                <label for="beyan" class="ml-2.5 text-xs text-slate-600 font-medium cursor-pointer" data-i18n="lblDeclaration">
+                                    Paylaştığım bilgilerin doğru ve iyi niyetli olduğunu, kasıtlı yanıltıcı beyan içermediğini onaylıyorum. *
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Butonlar -->
+                        <div class="flex gap-3 pt-2">
+                            <button onclick="changeStep(2)" class="w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3.5 px-4 rounded-xl transition text-sm text-center">
+                                <span data-i18n="btnBack">&lt; Geri</span>
+                            </button>
+                            <button onclick="submitForm()" class="w-2/3 bg-gozenNavy hover:bg-slate-800 text-white font-bold py-3.5 px-4 rounded-xl transition text-sm shadow-md flex items-center justify-center space-x-2 hover-lift">
+                                <span data-i18n="btnSubmit">Gönder 🚀</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ADIM 4: BAŞARILI GÖNDERİM (Şekil 4 & Bölüm 3.4) -->
+                    <div id="step4" class="step-page text-center space-y-6 py-8">
+                        <div class="w-20 h-20 bg-emerald-100 text-emerald-600 text-4xl flex items-center justify-center rounded-full mx-auto shadow-inner">✓</div>
+                        
+                        <div>
+                            <h2 class="text-2xl font-bold text-gozenNavy" data-i18n="successTitle">Bildiriminiz Başarıyla Alındı</h2>
+                            <p class="text-sm text-slate-500 mt-1 max-w-md mx-auto" data-i18n="successDesc">
+                                Bildiriminizi aşağıdaki takip numarasıyla 7/24 izleyebilirsiniz.
+                            </p>
+                        </div>
+
+                        <!-- Takip Numarası Kutusu -->
+                        <div class="bg-slate-50 p-6 rounded-3xl border border-slate-200 max-w-sm mx-auto shadow-sm">
+                            <span class="text-[11px] uppercase font-bold text-slate-400 tracking-wider block" data-i18n="lblTrackingNo">TAKİP NUMARASI</span>
+                            <div class="flex items-center justify-center gap-2 mt-2">
+                                <span id="generatedNoDisplay" class="text-2xl font-mono font-black text-gozenRed tracking-wider">SR-2026-000154</span>
+                                <button onclick="copyTrackingNo()" title="Numarayı Kopyala" class="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-gozenNavy hover:bg-slate-50 transition shadow-xs">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                </button>
+                            </div>
+                            <p class="text-[11px] text-slate-400 mt-2" data-i18n="trackingSaveHint">Lütfen bu numarayı kaydediniz; sürecin durumunu sorgularken gerekecektir.</p>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row gap-3 pt-2 max-w-sm mx-auto">
+                            <button onclick="goToQueryWithDemo()" class="w-full bg-gozenNavy hover:bg-slate-800 text-white font-bold py-3.5 px-4 rounded-xl transition text-sm shadow-md hover-lift" data-i18n="btnTrackProcess">
+                                Süreci Takip Et
+                            </button>
+                            <button onclick="resetPortal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3.5 px-4 rounded-xl transition text-sm" data-i18n="btnHomePage">
+                                Ana Sayfa
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ADIM 5: BİLDİRİM DURUMU SORGULAMA (Şekil 5 & Bölüm 3.5) -->
+                    <div id="step5" class="step-page space-y-6">
+                        <div>
+                            <h2 class="text-xl font-bold text-gozenNavy" data-i18n="queryTitle">Bildirim Durumu Sorgulama</h2>
+                            <p class="text-xs text-slate-500 mt-1" data-i18n="querySubtitle">Takip numaranızı girerek süreci görüntüleyebilirsiniz.</p>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <input type="text" id="queryInput" placeholder="Örn: SR-2026-000154" class="w-full rounded-xl border border-slate-200 p-3 text-sm font-mono outline-none focus:border-gozenNavy focus:ring-1 focus:ring-gozenNavy shadow-sm uppercase">
+                            <button onclick="executeQuery()" class="bg-gozenNavy hover:bg-slate-800 text-white font-bold px-8 rounded-xl text-sm transition shadow-md whitespace-nowrap hover-lift" data-i18n="btnQuery">
+                                Sorgula
+                            </button>
+                        </div>
+
+                        <!-- Hızlı Örnek Takip Numaraları -->
+                        <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 pt-1">
+                            <span data-i18n="quickTest">Hızlı Test Numaraları:</span>
+                            <button onclick="fillAndQuery('SR-2026-000123')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded font-mono text-[11px] text-slate-700">SR-2026-000123</button>
+                            <button onclick="fillAndQuery('SR-2026-000122')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded font-mono text-[11px] text-slate-700">SR-2026-000122</button>
+                            <button onclick="fillAndQuery('SR-2026-000121')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded font-mono text-[11px] text-slate-700">SR-2026-000121</button>
+                            <button onclick="fillAndQuery('SR-2026-000154')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded font-mono text-[11px] text-slate-700">SR-2026-000154</button>
+                        </div>
+
+                        <!-- DİNAMİK SONUÇ ALANI (Şekil 5) -->
+                        <div id="queryResult" class="hidden space-y-6 border-t border-slate-200 pt-6">
+                            
+                            <!-- Üst Bilgi Satırı -->
+                            <div class="flex flex-wrap items-center justify-between gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs">
+                                <div>
+                                    <span class="text-slate-400 block" data-i18n="lblTrackingNoShort">Takip No:</span>
+                                    <strong class="font-mono text-sm text-slate-800" id="resNo">SR-2026-000154</strong>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400 block" data-i18n="lblCategoryShort">Kategori:</span>
+                                    <strong class="text-sm text-slate-800" id="resKat">Fiziki Güvenlik</strong>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400 block" data-i18n="lblRiskShort">Risk Seviyesi:</span>
+                                    <span id="resRiskBadge" class="inline-block px-2.5 py-0.5 rounded font-bold text-xs">Kısıtlı Güvenlik Bilgisi</span>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400 block" data-i18n="lblStatusShort">Güncel Durum:</span>
+                                    <strong class="text-sm text-blue-600" id="resDurum">İncelemede</strong>
+                                </div>
+                            </div>
+
+                            <!-- Süreç Aşamaları (Timeline Stepper - Şekil 5 Birebir) -->
+                            <div class="space-y-4 pt-2">
+                                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="secProcessMilestones">Süreç Aşamaları</h4>
+                                
+                                <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 relative">
+                                    
+                                    <!-- Aşama 1: Bildirim Alındı -->
+                                    <div class="step-card bg-white p-4 rounded-xl border border-slate-200 relative flex flex-col items-center text-center">
+                                        <div id="stepDot1" class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-xs mb-2">✓</div>
+                                        <div class="font-bold text-xs text-slate-800" data-i18n="stage1Title">Bildirim Alındı</div>
+                                        <p class="text-[11px] text-slate-400 mt-1" id="stage1Date">20.09.2026 10:15</p>
+                                    </div>
+
+                                    <!-- Aşama 2: Ön İnceleme -->
+                                    <div class="step-card bg-white p-4 rounded-xl border border-slate-200 relative flex flex-col items-center text-center">
+                                        <div id="stepDot2" class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-xs mb-2">✓</div>
+                                        <div class="font-bold text-xs text-slate-800" data-i18n="stage2Title">Ön İnceleme</div>
+                                        <p class="text-[11px] text-slate-400 mt-1" id="stage2Date">20.09.2026 11:00</p>
+                                    </div>
+
+                                    <!-- Aşama 3: İlgili Birime Aktarıldı -->
+                                    <div class="step-card bg-white p-4 rounded-xl border border-blue-200 relative flex flex-col items-center text-center">
+                                        <div id="stepDot3" class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs mb-2">3</div>
+                                        <div class="font-bold text-xs text-blue-700" data-i18n="stage3Title">İlgili Birime Aktarıldı</div>
+                                        <p class="text-[11px] text-blue-600 mt-1" id="stage3Date">İşlem devam ediyor</p>
+                                    </div>
+
+                                    <!-- Aşama 4: Sonuçlandırıldı -->
+                                    <div class="step-card bg-white p-4 rounded-xl border border-slate-200 relative flex flex-col items-center text-center opacity-70" id="stepBox4">
+                                        <div id="stepDot4" class="w-8 h-8 rounded-full bg-slate-300 text-slate-600 flex items-center justify-center font-bold text-xs mb-2">4</div>
+                                        <div class="font-bold text-xs text-slate-600" data-i18n="stage4Title">Sonuçlandırıldı</div>
+                                        <p class="text-[11px] text-slate-400 mt-1" id="stage4Date">Bekliyor</p>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <!-- Bildirim Sahibiyle Paylaşılan Resmi Not (SEC-005, SEC-010 gereği iç not gizlidir) -->
+                            <div class="bg-blue-50/70 border-l-4 border-blue-600 p-4 rounded-r-2xl">
+                                <div class="text-xs font-bold text-blue-900 flex items-center space-x-1.5">
+                                    <span>📢</span>
+                                    <span data-i18n="lblPublicNoteTitle">İnceleme Yetkilisi Bilgilendirmesi:</span>
+                                </div>
+                                <p class="text-xs text-blue-800 mt-1 leading-relaxed" id="resPublicNote">
+                                    Bildiriminiz ilgili birim sorumlusuna iletilmiş olup saha kontrolleri planlanmıştır.
+                                </p>
+                            </div>
+
+                        </div>
+
+                        <!-- Geri Butonu -->
+                        <div class="pt-4 text-center">
+                            <button onclick="resetPortal()" class="text-xs font-bold text-gozenNavy hover:text-gozenRed transition flex items-center justify-center mx-auto space-x-1">
+                                <span>&lt;</span>
+                                <span data-i18n="btnReturnHome">Ana Sayfaya Dön</span>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Kurumsal Footer -->
+                <div class="bg-slate-50 px-6 py-4 border-t border-slate-100 text-center text-[11px] text-slate-400">
+                    <p data-i18n="footerLegal">Bu portal, Güvenlik Yönetim Sistemi (SeMS) kapsamında proaktif risk yönetimini desteklemek amacıyla oluşturulmuştur.</p>
+                    <span class="font-medium mt-1 inline-block">© 2026 Gözen Security - SeMS Bildirim Portalı</span>
+                </div>
+
+            </div>
+        </div>
+
+
+        <!-- ============================================================== -->
+        <!-- GÖRÜNÜM 2: YÖNETİCİ PANELİ - BİLDİRİM YÖNETİMİ (Şekil 6 & Bölüm 11)-->
+        <!-- ============================================================== -->
+        <div id="adminView" class="view-container w-full max-w-7xl">
+            <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col md:flex-row min-h-[850px]">
+                
+                <!-- SOL SİDEBAR (Şekil 6 Kırmızı Gözen Güvenlik Tasarımı) -->
+                <aside class="w-full md:w-64 bg-red-600 text-white flex flex-col justify-between shrink-0 p-5 select-none">
+                    <div class="space-y-6">
+                        <!-- Logo -->
+                        <div class="border-b border-red-500/40 pb-4">
+                            <h2 class="text-lg font-black tracking-wider uppercase">GÖZEN GÜVENLİK</h2>
+                            <p class="text-[10px] text-red-200 uppercase tracking-widest font-semibold">Yönetim ve Operasyon</p>
+                        </div>
+
+                        <!-- Menü Listesi -->
+                        <nav class="space-y-1 text-xs font-bold">
+                            <a href="javascript:void(0)" onclick="toast('Ana sayfaya yönlendiriliyor')" class="flex items-center px-3 py-2.5 rounded-xl hover:bg-red-700/60 transition text-red-100 hover:text-white">
+                                <span class="mr-2">🏠</span> <span data-i18n="menuHome">ANA SAYFA</span>
+                            </a>
+                            <a href="javascript:void(0)" class="flex items-center justify-between px-3 py-2.5 rounded-xl bg-red-700 text-white shadow-sm">
+                                <div class="flex items-center">
+                                    <span class="mr-2">📋</span> <span data-i18n="menuReports">BİLDİRİMLER</span>
+                                </div>
+                                <span class="bg-white text-red-700 text-[10px] font-black px-2 py-0.5 rounded-full" id="adminTotalBadge">124</span>
+                            </a>
+                            <a href="javascript:void(0)" onclick="filterByAssigned()" class="flex items-center px-3 py-2.5 rounded-xl hover:bg-red-700/60 transition text-red-100 hover:text-white">
+                                <span class="mr-2">👤</span> <span data-i18n="menuAssigned">ATANAN</span>
+                            </a>
+                            <a href="javascript:void(0)" onclick="filterByStatus('DEF Başlatıldı')" class="flex items-center px-3 py-2.5 rounded-xl hover:bg-red-700/60 transition text-red-100 hover:text-white">
+                                <span class="mr-2">🛡️</span> <span>DEF / CAPA</span>
+                            </a>
+                            <a href="javascript:void(0)" onclick="switchAppView('reportView')" class="flex items-center px-3 py-2.5 rounded-xl hover:bg-red-700/60 transition text-red-100 hover:text-white">
+                                <span class="mr-2">📊</span> <span data-i18n="menuAnalytics">RAPORLAR</span>
+                            </a>
+                            <a href="javascript:void(0)" onclick="toast('Dashboard yükleniyor')" class="flex items-center px-3 py-2.5 rounded-xl hover:bg-red-700/60 transition text-red-100 hover:text-white">
+                                <span class="mr-2">📈</span> <span>DASHBOARD</span>
+                            </a>
+                            <a href="javascript:void(0)" onclick="toast('Kullanıcı yönetimi paneli')" class="flex items-center px-3 py-2.5 rounded-xl hover:bg-red-700/60 transition text-red-100 hover:text-white">
+                                <span class="mr-2">👥</span> <span data-i18n="menuUsers">KULLANICILAR</span>
+                            </a>
+                            <a href="javascript:void(0)" onclick="toast('Birim yönetimi paneli')" class="flex items-center px-3 py-2.5 rounded-xl hover:bg-red-700/60 transition text-red-100 hover:text-white">
+                                <span class="mr-2">🏢</span> <span data-i18n="menuUnits">BİRİM YÖNETİMİ</span>
+                            </a>
+                            <a href="javascript:void(0)" onclick="openSettingsModal()" class="flex items-center px-3 py-2.5 rounded-xl hover:bg-red-700/60 transition text-red-100 hover:text-white">
+                                <span class="mr-2">⚙️</span> <span data-i18n="menuSettings">AYARLAR</span>
+                            </a>
+                            <a href="javascript:void(0)" onclick="openAnnounceModal()" class="flex items-center px-3 py-2.5 rounded-xl hover:bg-red-700/60 transition text-red-100 hover:text-white">
+                                <span class="mr-2">📢</span> <span data-i18n="menuAnnouncements">DUYURULAR</span>
+                            </a>
+                        </nav>
+                    </div>
+
+                    <!-- Alt Slogan Kutusu (Şekil 6) -->
+                    <div class="mt-8 pt-4 border-t border-red-500/40 text-[11px] text-red-100 leading-snug">
+                        <strong class="font-bold text-white block mb-1">GÜVENLİK KÜLTÜRÜMÜZ</strong>
+                        <p>Her bildirim daha güvenli bir gelecek için önemlidir.</p>
+                    </div>
+                </aside>
+
+                <!-- SAĞ İÇERİK: YÖNETİM PANELLERİ -->
+                <section class="flex-grow p-5 sm:p-7 space-y-6 overflow-y-auto bg-slate-50/50">
+                    
+                    <!-- Üst Başlık & Süre Uyarısı & Admin Profili (Şekil 6) -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-3">
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <h1 class="text-lg sm:text-xl font-black text-gozenNavy uppercase tracking-wide" data-i18n="adminPanelTitle">YÖNETİCİ PANELİ - BİLDİRİM YÖNETİMİ</h1>
+                                <span class="text-xs text-slate-400 hidden sm:inline">|</span>
+                                <span class="text-xs text-slate-500 hidden sm:inline" data-i18n="adminPanelSubtitle">SeMS Güvenlik İyileştirme Bildirim Portalı • Canlı Operasyon</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center space-x-3">
+                            <!-- 2 Süre Uyarısı Rozeti (Şekil 6) -->
+                            <button onclick="filterApproachingOrDelayed()" class="bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 text-xs font-bold px-3 py-1.5 rounded-xl transition flex items-center space-x-1 shadow-xs">
+                                <span>⚠️</span>
+                                <span data-i18n="slaWarningBadge">2 süre uyarısı</span>
+                            </button>
+                            <!-- Admin Profil Etiketi -->
+                            <div class="bg-white px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 shadow-xs flex items-center space-x-1.5">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                <span>Admin</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5 ADET ÖZET KART (Şekil 6) -->
+                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3.5">
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block" data-i18n="cardTotalReports">TOPLAM BİLDİRİM</span>
+                            <span class="text-2xl font-black text-gozenNavy mt-1 block" id="kpiTotal">124</span>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block" data-i18n="cardInReview">İNCELEMEDE</span>
+                            <span class="text-2xl font-black text-blue-600 mt-1 block" id="kpiReview">45</span>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block" data-i18n="cardAssigned">ATANAN</span>
+                            <span class="text-2xl font-black text-amber-600 mt-1 block" id="kpiAssigned">24</span>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">DEF BAŞLATILDI</span>
+                            <span class="text-2xl font-black text-purple-600 mt-1 block" id="kpiDef">17</span>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block" data-i18n="cardApproachingDelayed">YAKLAŞAN / GEÇEN</span>
+                            <span class="text-2xl font-black text-red-600 mt-1 block">6 / 2</span>
+                        </div>
+                    </div>
+
+                    <!-- BİLDİRİMLER LİSTESİ VE FİLTRE ÇUBUĞU (Şekil 6) -->
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+                        
+                        <!-- Durum Sekmeleri & İşlem Butonları -->
+                        <div class="p-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 bg-slate-50/60">
+                            
+                            <!-- Sekmeler -->
+                            <div class="flex flex-wrap items-center gap-1.5 text-xs font-bold">
+                                <span class="text-xs font-black text-slate-800 uppercase mr-2" data-i18n="tabReportsHeader">BİLDİRİMLER</span>
+                                <button onclick="filterByStatus('Tümü')" class="status-tab-btn px-3 py-1.5 rounded-lg bg-red-600 text-white shadow-xs" data-status="Tümü" data-i18n="tabAll">Tümü</button>
+                                <button onclick="filterByStatus('Açık')" class="status-tab-btn px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100" data-status="Açık" data-i18n="tabOpen">Açık</button>
+                                <button onclick="filterByStatus('İncelemede')" class="status-tab-btn px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100" data-status="İncelemede" data-i18n="tabInReview">İncelemede</button>
+                                <button onclick="filterByStatus('Atandı')" class="status-tab-btn px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100" data-status="Atandı" data-i18n="tabAssigned">Atandı</button>
+                                <button onclick="filterByStatus('DEF Başlatıldı')" class="status-tab-btn px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100" data-status="DEF Başlatıldı">DEF Başlatıldı</button>
+                                <button onclick="filterByStatus('Tamamlandı')" class="status-tab-btn px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100" data-status="Tamamlandı" data-i18n="tabCompleted">Tamamlandı</button>
+                                <button onclick="filterByStatus('Kapalı')" class="status-tab-btn px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100" data-status="Kapalı" data-i18n="tabClosed">Kapalı</button>
+                            </div>
+
+                            <!-- Arama, Filtre ve Yeni Bildirim Butonları -->
+                            <div class="flex items-center gap-2">
+                                <div class="relative">
+                                    <input type="text" id="adminSearchInput" onkeyup="searchAdminTable()" placeholder="Takip no, kategori, başlık..." class="w-48 sm:w-56 rounded-xl border border-slate-200 px-3 py-1.5 text-xs outline-none focus:border-gozenNavy bg-white">
+                                </div>
+                                <button onclick="openFilterModal()" class="bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold px-3 py-1.5 rounded-xl transition flex items-center space-x-1" data-i18n="btnFilter">
+                                    <span>🔍</span> <span data-i18n="btnFilterText">Filtrele</span>
+                                </button>
+                                <button onclick="openManualNewReportModal()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3.5 py-1.5 rounded-xl transition shadow-xs flex items-center space-x-1" data-i18n="btnAddNewReport">
+                                    <span>+</span> <span data-i18n="btnNew">Yeni</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Tablo (Şekil 6) -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs text-slate-600">
+                                <thead class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                    <tr>
+                                        <th class="py-3 px-4 cursor-pointer hover:text-gozenNavy" onclick="sortTable(0)">Takip No ↕</th>
+                                        <th class="py-3 px-4 cursor-pointer hover:text-gozenNavy" onclick="sortTable(1)">Tarih ↕</th>
+                                        <th class="py-3 px-4 cursor-pointer hover:text-gozenNavy" onclick="sortTable(2)">Kategori ↕</th>
+                                        <th class="py-3 px-4 cursor-pointer hover:text-gozenNavy" onclick="sortTable(3)">Bilgi Seviyesi ↕</th>
+                                        <th class="py-3 px-4 cursor-pointer hover:text-gozenNavy" onclick="sortTable(4)">Durum ↕</th>
+                                        <th class="py-3 px-4 cursor-pointer hover:text-gozenNavy" onclick="sortTable(5)">Atanan Birim/Kişi ↕</th>
+                                        <th class="py-3 px-4 cursor-pointer hover:text-gozenNavy" onclick="sortTable(6)">Hedef Tarih / SLA ↕</th>
+                                        <th class="py-3 px-4 text-center">İşlem</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminTableBody" class="divide-y divide-slate-100">
+                                    <!-- Dinamik olarak JS tarafından doldurulur -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- ======================================================= -->
+                    <!-- SEÇİLEN BİLDİRİM DETAY & YÖNETİM ALANI (Şekil 6 Birebir) -->
+                    <!-- ======================================================= -->
+                    <div id="caseDetailSection" class="grid grid-cols-1 lg:grid-cols-12 gap-5 pt-2">
+                        
+                        <!-- SOL SÜTUN: BİLDİRİM DETAYI & KÖK NEDEN & İÇ/DIŞ NOTLAR (lg:col-span-5) -->
+                        <div class="lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+                            <div class="border-b border-slate-100 pb-3">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="text-sm font-bold text-gozenNavy uppercase tracking-wide">BİLDİRİM DETAYI</h3>
+                                    <span class="font-mono font-bold text-xs text-gozenRed bg-red-50 px-2.5 py-0.5 rounded border border-red-200" id="detailCaseNo">SR-2026-000123</span>
+                                </div>
+                                <p class="text-[11px] text-slate-400 mt-1" id="detailCaseMeta">Kategori: Bina Tesis Riskleri • Atanan: Gökhan Karaboğa</p>
+                            </div>
+
+                            <!-- Olay Bildirim Metni -->
+                            <div class="space-y-1">
+                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">BİLDİRİM</label>
+                                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-700 leading-relaxed font-medium" id="detailCaseText">
+                                    İstasyon binası girişindeki erişim kontrol okuyucusu zaman zaman çalışmıyor. Fotoğraf ektedir.
+                                </div>
+                            </div>
+
+                            <!-- Zorunlu Kök Neden (FR-023, AC-ADM-09) -->
+                            <div class="space-y-1">
+                                <label class="text-[11px] font-bold text-red-600 uppercase tracking-wider block">KÖK NEDEN * zorunlu</label>
+                                <select id="detailRootCause" onchange="handleRootCauseChange()" class="w-full rounded-xl border border-slate-200 p-2.5 bg-white text-xs font-semibold outline-none focus:border-gozenNavy">
+                                    <option value="">Seçiniz...</option>
+                                    <option value="İnsan faktörü">İnsan faktörü</option>
+                                    <option value="Eğitim / yetkinlik">Eğitim / yetkinlik</option>
+                                    <option value="Prosedür / Doküman">Prosedür / Doküman</option>
+                                    <option value="İletişim">İletişim</option>
+                                    <option value="Ekipman / altyapı" selected>Ekipman / altyapı</option>
+                                    <option value="Personel / kaynak yetersizliği">Personel / kaynak yetersizliği</option>
+                                    <option value="Yönetim / gözetim">Yönetim / gözetim</option>
+                                    <option value="Fiziki çevre">Fiziki çevre</option>
+                                    <option value="Bilgi teknolojileri">Bilgi teknolojileri</option>
+                                    <option value="Dış Faktör">Dış Faktör</option>
+                                    <option value="Diğer">Diğer</option>
+                                </select>
+                                <p class="text-[10px] text-slate-400">Admin listesi yönetebilir. "Diğer" seçilirse açıklama zorunlu olur.</p>
+                                
+                                <div id="otherRootCauseDiv" class="hidden mt-2">
+                                    <input type="text" id="detailOtherRootCause" placeholder="Lütfen diğer kök nedeni belirtiniz..." class="w-full rounded-xl border border-red-200 p-2 text-xs outline-none focus:border-gozenNavy">
+                                </div>
+                            </div>
+
+                            <!-- Yönetici İç Notu (Yalnızca yetkililer) -->
+                            <div class="space-y-1">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-[11px] font-bold text-slate-700 uppercase tracking-wider">YÖNETİCİ İÇ NOTU</label>
+                                    <span class="text-[10px] text-red-600 font-semibold">• yalnızca yetkililer</span>
+                                </div>
+                                <textarea id="detailInternalNote" rows="2" class="w-full rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-gozenNavy resize-none">Teknik ekiple saha kontrolü planlandı.</textarea>
+                            </div>
+
+                            <!-- Bildirim Sahibiyle Paylaşılacak Not -->
+                            <div class="space-y-1">
+                                <label class="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">BİLDİRİM SAHİBİYLE PAYLAŞILACAK NOT</label>
+                                <textarea id="detailPublicNote" rows="2" class="w-full rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-gozenNavy resize-none">Kontrol başlatıldı; sonuçlandığında bilgi verilecektir. Kapanış geri bildiriminde otomatik gösterilir.</textarea>
+                            </div>
+
+                            <button onclick="saveCaseNotes()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-xs">
+                                Kaydet
+                            </button>
+                        </div>
+
+                        <!-- ORTA SÜTUN: SÜREÇ VE KİLOMETRE TAŞLARI (lg:col-span-4) -->
+                        <div class="lg:col-span-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+                            <h3 class="text-sm font-bold text-gozenNavy uppercase tracking-wide border-b border-slate-100 pb-3">SÜREÇ VE KİLOMETRE TAŞLARI</h3>
+                            
+                            <!-- Kilometre Taşları Çizelgesi (Şekil 6) -->
+                            <div class="space-y-3.5 text-xs">
+                                <div class="flex items-start space-x-2.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-slate-900 mt-1 shrink-0"></span>
+                                    <div>
+                                        <strong class="text-slate-800 font-bold block">Oluşturuldu</strong>
+                                        <span class="text-[11px] text-slate-500" id="kmOluşturuldu">18.09.2026 • 14:23</span>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start space-x-2.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-slate-900 mt-1 shrink-0"></span>
+                                    <div>
+                                        <strong class="text-slate-800 font-bold block">Birime atandı</strong>
+                                        <span class="text-[11px] text-slate-500" id="kmAtandi">18.09.2026 • 14:30</span>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start space-x-2.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-slate-900 mt-1 shrink-0"></span>
+                                    <div>
+                                        <strong class="text-slate-800 font-bold block">İnceleme başladı</strong>
+                                        <span class="text-[11px] text-slate-500" id="kmInceleme">19.09.2026 • 10:15</span>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start space-x-2.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-red-600 mt-1 shrink-0 animate-pulse"></span>
+                                    <div>
+                                        <strong class="text-red-700 font-bold block">İlk değerlendirme</strong>
+                                        <span class="text-[11px] text-red-600 font-semibold" id="kmDegerlendirme">24.09.2026 • YAKLAŞAN</span>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start space-x-2.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-slate-300 mt-1 shrink-0"></span>
+                                    <div>
+                                        <strong class="text-slate-600 font-semibold block">DEF / CAPA</strong>
+                                        <span class="text-[11px] text-slate-400 font-mono" id="kmDef">SR-2026-000123</span>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start space-x-2.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-slate-300 mt-1 shrink-0"></span>
+                                    <div>
+                                        <strong class="text-slate-600 font-semibold block">Hedef kapanış</strong>
+                                        <span class="text-[11px] text-slate-400" id="kmHedef">30.09.2026</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Yönlendir / Sorumlu Ata (Şekil 6) -->
+                            <div class="pt-2 border-t border-slate-100 space-y-1">
+                                <label class="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">YÖNLENDİR / SORUMLU ATA</label>
+                                <select id="detailAssignSelect" onchange="updateAssignment()" class="w-full rounded-xl border border-slate-200 p-2.5 bg-white text-xs font-semibold outline-none focus:border-gozenNavy">
+                                    <option value="Bina Tesis / Gökhan Karaboğa">Bina Tesis / Gökhan Karaboğa</option>
+                                    <option value="K9 Birimi / Ekrem Çelik">K9 Birimi / Ekrem Çelik</option>
+                                    <option value="Operasyon / Mehmet Yılmaz">Operasyon / Mehmet Yılmaz</option>
+                                    <option value="Siber Güvenlik / Ali Vural">Siber Güvenlik / Ali Vural</option>
+                                    <option value="Fiziki Güvenlik / Canan Demir">Fiziki Güvenlik / Canan Demir</option>
+                                </select>
+                                <p class="text-[10px] text-slate-400">Admin tüm birimlere yönlendirebilir.</p>
+                            </div>
+                        </div>
+
+                        <!-- SAĞ SÜTUN: HIZLI İŞLEMLER (lg:col-span-3) -->
+                        <div class="lg:col-span-3 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between space-y-4">
+                            <div class="space-y-3">
+                                <h3 class="text-sm font-bold text-gozenNavy uppercase tracking-wide border-b border-slate-100 pb-3">HIZLI İŞLEMLER</h3>
+                                
+                                <button onclick="quickAction('startWork')" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 px-3 rounded-xl text-xs transition shadow-xs flex items-center justify-center space-x-1.5">
+                                    <span>▶</span> <span>Çalışma Başlat</span>
+                                </button>
+                                
+                                <button onclick="quickAction('deactivate')" class="w-full bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 font-bold py-2.5 px-3 rounded-xl text-xs transition flex items-center justify-center space-x-1.5">
+                                    <span>⚙</span> <span>Pasife Al</span>
+                                </button>
+                                
+                                <button onclick="quickAction('reject')" class="w-full bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 font-bold py-2.5 px-3 rounded-xl text-xs transition flex items-center justify-center space-x-1.5">
+                                    <span>✕</span> <span>Reddet</span>
+                                </button>
+
+                                <button onclick="quickAction('defCapa')" class="w-full bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 font-bold py-2.5 px-3 rounded-xl text-xs transition flex items-center justify-center space-x-1.5">
+                                    <span>🛡️</span> <span>DEF / CAPA Başlat</span>
+                                </button>
+
+                                <button onclick="openAnnounceModal()" class="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 font-bold py-2.5 px-3 rounded-xl text-xs transition flex items-center justify-center space-x-1.5">
+                                    <span>✉</span> <span>Duyuruya Çevir</span>
+                                </button>
+                                
+                                <p class="text-[10px] text-slate-400 text-center">Duyuru önizleme ve alıcı grubu seçiminden sonra gönderilir.</p>
+                            </div>
+
+                            <!-- Bildirim Sahibi Geri Bildirimi Rozeti (Şekil 6) -->
+                            <div class="pt-4 border-t border-slate-100 text-xs">
+                                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">BİLDİRİM SAHİBİ GERİ BİLDİRİMİ</span>
+                                <div class="mt-1.5 inline-block bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold px-3 py-1 rounded-lg text-[11px]">
+                                    E-posta + takip kaydı
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </section>
+
+            </div>
+        </div>
+
+
+        <!-- ============================================================== -->
+        <!-- GÖRÜNÜM 3: RAPORLAMA PANELİ (Şekil 7 & Bölüm 12)               -->
+        <!-- ============================================================== -->
+        <div id="reportView" class="view-container w-full max-w-7xl">
+            <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col md:flex-row min-h-[850px]">
+                
+                <!-- Sol Sidebar (Raporlar sekmesi aktif) -->
+                <aside class="w-full md:w-64 bg-red-600 text-white flex flex-col justify-between shrink-0 p-5 select-none">
+                    <div class="space-y-6">
+                        <div class="border-b border-red-500/40 pb-4">
+                            <h2 class="text-lg font-black tracking-wider uppercase">GÖZEN GÜVENLİK</h2>
+                            <p class="text-[10px] text-red-200 uppercase tracking-widest font-semibold">Raporlama ve Analiz</p>
+                        </div>
+                        <nav class="space-y-1 text-xs font-bold">
+                            <a href="javascript:void(0)" onclick="switchAppView('userView')" class="flex items-center px-3 py-2.5 rounded-xl hover:bg-red-700/60 transition text-red-100 hover:text-white">
+                                <span class="mr-2">🏠</span> <span>KULLANICI PORTALI</span>
+                            </a>
+                            <a href="javascript:void(0)" onclick="switchAppView('adminView')" class="flex items-center px-3 py-2.5 rounded-xl hover:bg-red-700/60 transition text-red-100 hover:text-white">
+                                <span class="mr-2">📋</span> <span>BİLDİRİMLER YÖNETİMİ</span>
+                            </a>
+                            <a href="javascript:void(0)" class="flex items-center px-3 py-2.5 rounded-xl bg-red-700 text-white shadow-sm">
+                                <span class="mr-2">📊</span> <span>RAPORLAR</span>
+                            </a>
+                            <a href="javascript:void(0)" onclick="toast('GOHUB Entegrasyon Raporu')" class="flex items-center px-3 py-2.5 rounded-xl hover:bg-red-700/60 transition text-red-100 hover:text-white">
+                                <span class="mr-2">🌐</span> <span>GOHUB AKTARIMI</span>
+                            </a>
+                            <a href="javascript:void(0)" onclick="openSettingsModal()" class="flex items-center px-3 py-2.5 rounded-xl hover:bg-red-700/60 transition text-red-100 hover:text-white">
+                                <span class="mr-2">⚙️</span> <span>AYARLAR &amp; KOTA</span>
+                            </a>
+                        </nav>
+                    </div>
+
+                    <div class="mt-8 pt-4 border-t border-red-500/40 text-[11px] text-red-100 leading-snug">
+                        <strong class="font-bold text-white block mb-1">GÜVENLİK KÜLTÜRÜMÜZ</strong>
+                        <p>Her bildirim daha güvenli bir gelecek için önemlidir.</p>
+                    </div>
+                </aside>
+
+                <!-- Sağ Raporlama İçeriği (Şekil 7 Birebir) -->
+                <section class="flex-grow p-5 sm:p-7 space-y-6 overflow-y-auto bg-slate-50/50">
+                    
+                    <!-- Üst Başlık & Tarih Aralığı Filtresi & PDF/Excel (Şekil 7) -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-3">
+                        <div>
+                            <h1 class="text-lg sm:text-xl font-black text-gozenNavy uppercase tracking-wide">RAPORLAMA PANELİ</h1>
+                            <p class="text-xs text-slate-500">SeMS Güvenlik İyileştirme Bildirim Portalı • Örnek ekran görünümü</p>
+                        </div>
+
+                        <!-- Tarih Aralığı + Filtrele + PDF / Excel Butonları -->
+                        <div class="flex flex-wrap items-center gap-2">
+                            <div class="bg-white border border-slate-200 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-700 flex items-center space-x-1.5 shadow-xs">
+                                <span>📅</span>
+                                <input type="text" id="reportDateRange" value="01.01 - 23.09.2026" class="w-36 outline-none bg-transparent text-xs font-bold text-slate-700 text-center">
+                            </div>
+                            <button onclick="applyReportDateFilter()" class="bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold px-3 py-1.5 rounded-xl transition shadow-xs">
+                                Filtrele
+                            </button>
+                            <button onclick="exportReport('all')" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-1.5 rounded-xl transition shadow-xs flex items-center space-x-1">
+                                <span>📥</span> <span>PDF / Excel</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 14 ADET RAPORLAMA ALT SEKME ÇUBUĞU (Şekil 7 & Bölüm 12.2 / RPR-021) -->
+                    <div class="flex flex-wrap gap-1.5 text-xs font-semibold">
+                        <button onclick="selectReportSubtab(this, 'Toplam Bildirim')" class="report-subtab px-3 py-1.5 rounded-lg bg-red-600 text-white shadow-xs">Toplam Bildirim</button>
+                        <button onclick="selectReportSubtab(this, 'S1-S3')" class="report-subtab px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">S1-S3</button>
+                        <button onclick="selectReportSubtab(this, 'Lokasyon / İstasyon')" class="report-subtab px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">Lokasyon / İstasyon</button>
+                        <button onclick="selectReportSubtab(this, 'Olay Kategorileri')" class="report-subtab px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">Olay Kategorileri</button>
+                        <button onclick="selectReportSubtab(this, 'Müşteri / Havayolu')" class="report-subtab px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">Müşteri / Havayolu</button>
+                        <button onclick="selectReportSubtab(this, 'Tekrarlayan Olaylar')" class="report-subtab px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">Tekrarlayan Olaylar</button>
+                        <button onclick="selectReportSubtab(this, 'Açık / Gecikmiş Aksiyonlar')" class="report-subtab px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">Açık / Gecikmiş Aksiyonlar</button>
+                        <button onclick="selectReportSubtab(this, 'İlk Değerlendirme')" class="report-subtab px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">İlk Değerlendirme</button>
+                        <button onclick="selectReportSubtab(this, 'Zamanında Kapanma')" class="report-subtab px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">Zamanında Kapanma</button>
+                        <button onclick="selectReportSubtab(this, 'Kök Neden')" class="report-subtab px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">Kök Neden</button>
+                        <button onclick="selectReportSubtab(this, 'Anonim / Gizli')" class="report-subtab px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">Anonim / Gizli</button>
+                        <button onclick="selectReportSubtab(this, 'Aylık / Yıllık Eğilim')" class="report-subtab px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">Aylık / Yıllık Eğilim</button>
+                        <button onclick="selectReportSubtab(this, 'Kritik Olaylar')" class="report-subtab px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">Kritik Olaylar</button>
+                        <button onclick="selectReportSubtab(this, 'Kritiklik / Kategori Değişiklikleri')" class="report-subtab px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">Kritiklik / Kategori Değişiklikleri</button>
+                    </div>
+
+                    <!-- 5 ADET METRİK KARTI (Şekil 7 Birebir Rakamlar) -->
+                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3.5">
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">TOPLAM BİLDİRİM</span>
+                            <span class="text-2xl font-black text-red-600 mt-1 block">124</span>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">S1 / S2 / S3</span>
+                            <span class="text-2xl font-black text-slate-800 mt-1 block">8 / 36 / 80</span>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">AÇIK / GECİKMİŞ</span>
+                            <span class="text-2xl font-black text-slate-800 mt-1 block">38 / 6</span>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">İLK DEĞERLENDİRME</span>
+                            <span class="text-2xl font-black text-slate-800 mt-1 block">1,8 gün</span>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">ZAMANINDA KAPANMA</span>
+                            <span class="text-2xl font-black text-emerald-600 mt-1 block">%82</span>
+                        </div>
+                    </div>
+
+                    <!-- 3'LÜ GRAFİK VE DAĞILIM SIRASI (Şekil 7) -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                        
+                        <!-- 1. AYLIK BİLDİRİM EĞİLİMİ (Line Chart) -->
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+                            <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">AYLIK BİLDİRİM EĞİLİMİ</h3>
+                            
+                            <!-- SVG Çizgi Grafiği -->
+                            <div class="relative h-44 w-full flex items-end">
+                                <svg class="w-full h-full overflow-visible" viewBox="0 0 300 120">
+                                    <!-- Izgara çizgileri -->
+                                    <line x1="0" y1="20" x2="300" y2="20" stroke="#f1f5f9" stroke-width="1"></line>
+                                    <line x1="0" y1="60" x2="300" y2="60" stroke="#f1f5f9" stroke-width="1"></line>
+                                    <line x1="0" y1="100" x2="300" y2="100" stroke="#f1f5f9" stroke-width="1"></line>
+                                    
+                                    <!-- Trend Çizgisi -->
+                                    <polyline fill="none" stroke="#DC2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                                        points="15,100  45,85  75,90  105,65  135,50  165,65  195,80  225,50  255,40  285,30" />
+                                    
+                                    <!-- Veri Noktaları -->
+                                    <circle cx="15" cy="100" r="3.5" fill="#DC2626" />
+                                    <circle cx="45" cy="85" r="3.5" fill="#DC2626" />
+                                    <circle cx="75" cy="90" r="3.5" fill="#DC2626" />
+                                    <circle cx="105" cy="65" r="3.5" fill="#DC2626" />
+                                    <circle cx="135" cy="50" r="3.5" fill="#DC2626" />
+                                    <circle cx="165" cy="65" r="3.5" fill="#DC2626" />
+                                    <circle cx="195" cy="80" r="3.5" fill="#DC2626" />
+                                    <circle cx="225" cy="50" r="3.5" fill="#DC2626" />
+                                    <circle cx="255" cy="40" r="3.5" fill="#DC2626" />
+                                    <circle cx="285" cy="30" r="3.5" fill="#DC2626" />
+                                </svg>
+                            </div>
+                            <div class="flex justify-between text-[10px] text-slate-400 font-medium px-1">
+                                <span>Oca</span><span>Şub</span><span>Mar</span><span>Nis</span><span>May</span><span>Haz</span><span>Tem</span><span>Ağu</span><span>Eyl</span>
+                            </div>
+                        </div>
+
+                        <!-- 2. OLAY KRİTİKLİK SEVİYESİ • S1-S3 -->
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+                            <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">OLAY KRİTİKLİK SEVİYESİ • S1-S3</h3>
+                            
+                            <div class="space-y-3.5 pt-1">
+                                <div>
+                                    <div class="flex justify-between text-xs font-semibold mb-1">
+                                        <span class="text-slate-600">S1 • kritik</span>
+                                        <span class="font-bold text-red-600">8</span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 rounded-full h-2.5">
+                                        <div class="bg-red-600 h-2.5 rounded-full" style="width: 8%"></div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="flex justify-between text-xs font-semibold mb-1">
+                                        <span class="text-slate-600">S2 • yüksek</span>
+                                        <span class="font-bold text-amber-600">36</span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 rounded-full h-2.5">
+                                        <div class="bg-amber-500 h-2.5 rounded-full" style="width: 36%"></div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="flex justify-between text-xs font-semibold mb-1">
+                                        <span class="text-slate-600">S3 • diğer</span>
+                                        <span class="font-bold text-emerald-600">80</span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 rounded-full h-2.5">
+                                        <div class="bg-emerald-500 h-2.5 rounded-full" style="width: 80%"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pt-3 border-t border-slate-100 text-[11px] text-slate-400">
+                                <strong>Bilgi gizlilik seviyesi ayrı alan:</strong><br>
+                                Genel / Kontrollü Bilgi / Kısıtlı Güvenlik Bilgisi
+                            </div>
+                        </div>
+
+                        <!-- 3. OLAY KATEGORİLERİ -->
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+                            <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">OLAY KATEGORİLERİ</h3>
+                            
+                            <div class="space-y-2.5 text-xs">
+                                <div>
+                                    <div class="flex justify-between font-semibold mb-1">
+                                        <span class="text-slate-600">Bina Tesis Riskleri</span>
+                                        <span class="font-bold text-red-700">32</span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 rounded-full h-2.5">
+                                        <div class="bg-red-700 h-2.5 rounded-full" style="width: 75%"></div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="flex justify-between font-semibold mb-1">
+                                        <span class="text-slate-600">Operasyon</span>
+                                        <span class="font-bold text-red-600">27</span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 rounded-full h-2.5">
+                                        <div class="bg-red-600 h-2.5 rounded-full" style="width: 65%"></div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="flex justify-between font-semibold mb-1">
+                                        <span class="text-slate-600">K9 Riskleri</span>
+                                        <span class="font-bold text-red-600">21</span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 rounded-full h-2.5">
+                                        <div class="bg-red-600 h-2.5 rounded-full" style="width: 50%"></div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="flex justify-between font-semibold mb-1">
+                                        <span class="text-slate-600">Fiziki Güvenlik</span>
+                                        <span class="font-bold text-red-600">18</span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 rounded-full h-2.5">
+                                        <div class="bg-red-600 h-2.5 rounded-full" style="width: 42%"></div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="flex justify-between font-semibold mb-1">
+                                        <span class="text-slate-600">Diğer</span>
+                                        <span class="font-bold text-red-600">26</span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 rounded-full h-2.5">
+                                        <div class="bg-red-600 h-2.5 rounded-full" style="width: 60%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- ALT BÖLÜM: KRİTİKLİK DEĞİŞİKLİKLERİ & LOKASYON & BİLDİRİM TÜRÜ (Şekil 7) -->
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                        
+                        <!-- KRİTİKLİK VE KATEGORİ DEĞİŞİKLİKLERİ TABLOSU (lg:col-span-7) -->
+                        <div class="lg:col-span-7 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">KRİTİKLİK VE KATEGORİ DEĞİŞİKLİKLERİ</h3>
+                                <span class="bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full">4 değişiklik</span>
+                            </div>
+
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-xs text-slate-600">
+                                    <thead class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-400">
+                                        <tr>
+                                            <th class="py-2.5 px-3">Takip no</th>
+                                            <th class="py-2.5 px-3">Alan</th>
+                                            <th class="py-2.5 px-3">Eski → Yeni</th>
+                                            <th class="py-2.5 px-3">Gerekçe</th>
+                                            <th class="py-2.5 px-3">Tarih</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100 text-[11px]">
+                                        <tr>
+                                            <td class="py-2.5 px-3 font-mono font-bold text-slate-800">SR-2026-000123</td>
+                                            <td class="py-2.5 px-3">Kritiklik</td>
+                                            <td class="py-2.5 px-3 font-semibold text-red-600">S2 → S1</td>
+                                            <td class="py-2.5 px-3">Etki büyüdü</td>
+                                            <td class="py-2.5 px-3 text-slate-400">22.09</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2.5 px-3 font-mono font-bold text-slate-800">SR-2026-000117</td>
+                                            <td class="py-2.5 px-3">Kategori</td>
+                                            <td class="py-2.5 px-3 font-semibold text-amber-600">Tesis → K9 Riskleri</td>
+                                            <td class="py-2.5 px-3">Yeniden inceleme</td>
+                                            <td class="py-2.5 px-3 text-slate-400">20.09</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2.5 px-3 font-mono font-bold text-slate-800">SR-2026-000109</td>
+                                            <td class="py-2.5 px-3">Kritiklik</td>
+                                            <td class="py-2.5 px-3 font-semibold text-amber-600">S3 → S2</td>
+                                            <td class="py-2.5 px-3">Tekrarlayan olay</td>
+                                            <td class="py-2.5 px-3 text-slate-400">18.09</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2.5 px-3 font-mono font-bold text-slate-800">SR-2026-000094</td>
+                                            <td class="py-2.5 px-3">Kategori</td>
+                                            <td class="py-2.5 px-3 font-semibold text-blue-600">Operasyon → Fiziki Güv.</td>
+                                            <td class="py-2.5 px-3">Yetki alanı kontrolü</td>
+                                            <td class="py-2.5 px-3 text-slate-400">15.09</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Lokasyon ve İstasyon Bazında Olaylar -->
+                            <div class="pt-4 border-t border-slate-100">
+                                <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">LOKASYON VE İSTASYON BAZINDA OLAYLAR</h4>
+                                <div class="grid grid-cols-4 gap-2">
+                                    <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-center">
+                                        <span class="text-[10px] text-slate-400 block font-semibold">İstanbul</span>
+                                        <span class="text-lg font-black text-red-600">43</span>
+                                    </div>
+                                    <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-center">
+                                        <span class="text-[10px] text-slate-400 block font-semibold">Antalya</span>
+                                        <span class="text-lg font-black text-red-600">31</span>
+                                    </div>
+                                    <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-center">
+                                        <span class="text-[10px] text-slate-400 block font-semibold">Ankara</span>
+                                        <span class="text-lg font-black text-red-600">25</span>
+                                    </div>
+                                    <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-center">
+                                        <span class="text-[10px] text-slate-400 block font-semibold">Diğer</span>
+                                        <span class="text-lg font-black text-red-600">25</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- BİLDİRİM TÜRÜ VE DURUM KARTI (lg:col-span-5) -->
+                        <div class="lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between space-y-4">
+                            <div class="space-y-4">
+                                <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">BİLDİRİM TÜRÜ VE DURUM</h3>
+                                
+                                <!-- Anonim / Gizli Oranı Barı (Şekil 7) -->
+                                <div>
+                                    <div class="flex justify-between text-xs font-bold mb-1">
+                                        <span class="text-red-700">Anonim %43</span>
+                                        <span class="text-blue-900">Gizli %57</span>
+                                    </div>
+                                    <div class="w-full bg-slate-200 rounded-full h-3 flex overflow-hidden">
+                                        <div class="bg-red-600 h-3" style="width: 43%"></div>
+                                        <div class="bg-blue-900 h-3" style="width: 57%"></div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs space-y-1.5 text-slate-700">
+                                    <div class="flex justify-between">
+                                        <span>Açık aksiyon:</span>
+                                        <strong class="font-bold text-slate-900">38</strong>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Gecikmiş aksiyon:</span>
+                                        <strong class="font-bold text-red-600">6</strong>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Ortalama ilk değerlendirme:</span>
+                                        <strong class="font-bold text-slate-900">1,8 gün</strong>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Zamanında kapanma:</span>
+                                        <strong class="font-bold text-emerald-600">%82</strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-3 pt-2">
+                                <div class="flex gap-2">
+                                    <button onclick="exportReport('pdf')" class="w-1/2 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 px-3 rounded-xl text-xs transition shadow-xs flex items-center justify-center space-x-1">
+                                        <span>📄</span> <span>PDF İndir</span>
+                                    </button>
+                                    <button onclick="exportReport('excel')" class="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 px-3 rounded-xl text-xs transition border border-slate-200 flex items-center justify-center space-x-1">
+                                        <span>📊</span> <span>Excel İndir</span>
+                                    </button>
+                                </div>
+                                <p class="text-[10px] text-slate-400 text-center leading-tight">
+                                    Alt sekme ve filtreler çıktıda korunur.<br>
+                                    <strong>Anonim kimlik bilgisi hiçbir çıktıya alınmaz.</strong>
+                                </p>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </section>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ============================================================== -->
+    <!-- MODAL 1: BİLDİRİMİ DUYURUYA ÇEVİR (Şekil 6 & Bölüm 11.1 / FR-027)-->
+    <!-- ============================================================== -->
+    <div id="announceModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-3xl w-full overflow-hidden flex flex-col max-h-[90vh]">
+            
+            <div class="bg-gozenNavy text-white p-5 border-b-2 border-gozenRed flex items-center justify-between">
+                <div>
+                    <h3 class="text-sm font-bold uppercase tracking-wider">BİLDİRİMİ DUYURUYA ÇEVİR</h3>
+                    <p class="text-[11px] text-slate-300">Seçilen alanlar ile kurumsal güvenlik duyurusu oluşturulur ve yetkili kanallara iletilir.</p>
+                </div>
+                <button onclick="closeAnnounceModal()" class="text-slate-400 hover:text-white text-lg font-bold p-1">✕</button>
+            </div>
+
+            <div class="p-6 overflow-y-auto space-y-6 text-xs">
+                
+                <!-- Güvenlik Garantisi Uyarısı (SEC-005, SEC-010) -->
+                <div class="bg-amber-50 border-l-4 border-amber-500 p-3 rounded-r-xl text-amber-900">
+                    <strong class="font-bold">Gizlilik Garantisi:</strong> Yönetici iç notları ile anonim/gizli kimlik bilgileri duyuru içeriğine veya önizlemeye ASLA aktarılmaz.
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    <!-- Sol: Paylaşılacak Alanlar & Kanallar -->
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">1. Paylaşılacak Bilgiler</label>
+                            <div class="space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" id="annIncTitle" checked onchange="updateAnnouncePreview()" class="rounded text-gozenNavy">
+                                    <span>Başlık</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" id="annIncDate" checked onchange="updateAnnouncePreview()" class="rounded text-gozenNavy">
+                                    <span>Tarih</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" id="annIncRisk" checked onchange="updateAnnouncePreview()" class="rounded text-gozenNavy">
+                                    <span>Risk Seviyesi</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" id="annIncDesc" checked onchange="updateAnnouncePreview()" class="rounded text-gozenNavy">
+                                    <span>Bildirim Metni (Özet)</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" id="annIncAction" checked onchange="updateAnnouncePreview()" class="rounded text-gozenNavy">
+                                    <span>Alınan Aksiyon</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" id="annIncExtra" checked onchange="updateAnnouncePreview()" class="rounded text-gozenNavy">
+                                    <span>Serbest Metin / İlave Uyarı</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">2. Gönderim Kanalları (Hedefler)</label>
+                            <div class="space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" id="chEmail" checked class="rounded text-gozenNavy">
+                                    <span>E-posta Grubu: [Tüm İstasyon Güvenlik Şefleri]</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" id="chPanel" checked class="rounded text-gozenNavy">
+                                    <span>Bildirim Paneli (Uygulama İçi Duyurular)</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" id="chGohub" checked class="rounded text-gozenNavy">
+                                    <span class="font-bold text-red-600">GOHUB Entegrasyonu (Kurumsal Platform Bildirimi)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">İlave Güvenlik Notu (Serbest Metin)</label>
+                            <textarea id="annFreeText" rows="2" onkeyup="updateAnnouncePreview()" class="w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-gozenNavy">Benzer altyapı ekipmanlarının rutin kontrollerinin sıklaştırılması rica olunur.</textarea>
+                        </div>
+                    </div>
+
+                    <!-- Sağ: Canlı Önizleme -->
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Canlı Duyuru Önizlemesi</label>
+                        <div class="bg-slate-50 rounded-2xl border border-slate-200 p-4 space-y-3 shadow-inner">
+                            <div class="bg-gozenNavy text-white p-3 rounded-xl text-center">
+                                <span class="text-[10px] uppercase tracking-widest text-slate-300 block">GÖZEN SECURITY • GÜVENLİK DUYURUSU</span>
+                                <h4 class="font-bold text-xs mt-0.5" id="prevTitle">İstasyon Giriş Kontrol Uyarısı</h4>
+                            </div>
+
+                            <div class="text-[11px] text-slate-600 space-y-2 bg-white p-3 rounded-xl border border-slate-200">
+                                <div id="prevDateRisk" class="flex justify-between font-bold text-slate-800 border-b border-slate-100 pb-1">
+                                    <span>Tarih: 18.09.2026</span>
+                                    <span class="text-red-600">Risk: Kısıtlı Güvenlik Bilgisi</span>
+                                </div>
+                                <div id="prevDesc">
+                                    <strong>Olay:</strong> İstasyon binası girişindeki erişim kontrol okuyucusu zaman zaman çalışmıyor.
+                                </div>
+                                <div id="prevAction" class="text-emerald-700 font-semibold">
+                                    <strong>Alınan Aksiyon:</strong> Teknik bakım ve saha değişimi tamamlanmıştır.
+                                </div>
+                                <div id="prevExtra" class="text-slate-500 italic bg-slate-50 p-2 rounded">
+                                    "Benzer altyapı ekipmanlarının rutin kontrollerinin sıklaştırılması rica olunur."
+                                </div>
+                            </div>
+
+                            <div class="text-[10px] text-slate-400 text-center font-medium">
+                                Gönderim sonucu işlem geçmişine değiştirilemez log olarak kaydedilir.
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="bg-slate-50 p-4 border-t border-slate-200 flex justify-end gap-2">
+                <button onclick="closeAnnounceModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200 transition">İptal</button>
+                <button onclick="publishAnnouncement()" class="px-5 py-2 rounded-xl text-xs font-bold bg-red-600 hover:bg-red-700 text-white transition shadow-sm flex items-center space-x-1.5">
+                    <span>🚀</span> <span>Duyuruyu Yayınla ve Gönder</span>
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- ============================================================== -->
+    <!-- MODAL 2: YÖNETİCİ MANUEL BİLDİRİM GİRİŞİ (ADM-019)            -->
+    <!-- ============================================================== -->
+    <div id="manualNewModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-lg w-full overflow-hidden">
+            <div class="bg-gozenNavy text-white p-5 border-b-2 border-gozenRed flex items-center justify-between">
+                <div>
+                    <h3 class="text-sm font-bold uppercase tracking-wider">YÖNETİCİ BİLDİRİM GİRİŞİ (MANUEL)</h3>
+                    <p class="text-[11px] text-slate-300">Saha veya telefonla intikal eden bildirimler için kayıt formu</p>
+                </div>
+                <button onclick="closeManualNewModal()" class="text-slate-400 hover:text-white text-lg font-bold">✕</button>
+            </div>
+
+            <div class="p-6 space-y-4 text-xs">
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Bildirim Başlığı *</label>
+                    <input type="text" id="mBaslik" class="w-full rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-gozenNavy">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Kategori *</label>
+                        <select id="mKategori" class="w-full rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-gozenNavy">
+                            <option value="Fiziki Güvenlik">Fiziki Güvenlik</option>
+                            <option value="Operasyon">Operasyon</option>
+                            <option value="K9 Riskleri">K-9 Riskleri</option>
+                            <option value="Bina Tesis Riskleri">Bina Tesis Riskleri</option>
+                            <option value="Siber Güvenlik / Bilgi Güvenliği">Siber Güvenlik</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Risk Seviyesi *</label>
+                        <select id="mRisk" class="w-full rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-gozenNavy font-semibold">
+                            <option value="Kısıtlı Güvenlik Bilgisi">Kısıtlı Güvenlik Bilgisi</option>
+                            <option value="Kontrollü Bilgi">Kontrollü Bilgi</option>
+                            <option value="Genel">Genel</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Atanacak Birim / Yetkili</label>
+                    <select id="mAtanan" class="w-full rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-gozenNavy">
+                        <option value="Bina Tesis / Gökhan Karaboğa">Bina Tesis / Gökhan Karaboğa</option>
+                        <option value="K9 Birimi / Ekrem Çelik">K9 Birimi / Ekrem Çelik</option>
+                        <option value="Operasyon / Mehmet Yılmaz">Operasyon / Mehmet Yılmaz</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Açıklama / Bildirim Detayı *</label>
+                    <textarea id="mAciklama" rows="3" class="w-full rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-gozenNavy resize-none"></textarea>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 p-4 border-t border-slate-200 flex justify-end gap-2">
+                <button onclick="closeManualNewModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200 transition">İptal</button>
+                <button onclick="saveManualNewReport()" class="px-5 py-2 rounded-xl text-xs font-bold bg-gozenNavy hover:bg-slate-800 text-white transition shadow-sm">Kaydet ve Takip No Üret</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST BİLDİRİM KONTEYNERİ -->
+    <div id="toastContainer"></div>
+
+    <!-- JAVASCRIPT KODLARI -->
+    <script src="app.js"></script>
+</body>
+</html>

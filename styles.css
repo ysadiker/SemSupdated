@@ -1,0 +1,181 @@
+/* ==========================================================================
+   Gözen Security - SeMS Güvenlik İyileştirme Bildirim Portalı
+   Kurumsal Tasarım ve Arayüz Stilleri
+   ========================================================================== */
+
+:root {
+  --gozen-navy: #0B2545;
+  --gozen-navy-dark: #07172C;
+  --gozen-red: #E63946;
+  --gozen-red-dark: #C92A37;
+  --gozen-bg: #F4F6F9;
+  --gozen-card: #FFFFFF;
+  --gozen-text: #1E293B;
+  --gozen-muted: #64748B;
+  --gozen-border: #E2E8F0;
+  
+  --risk-genel: #10B981;
+  --risk-kontrollu: #F59E0B;
+  --risk-kisitli: #EF4444;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--gozen-bg);
+  color: var(--gozen-text);
+  overflow-x: hidden;
+}
+
+/* Page transitions */
+.view-container {
+  display: none;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.25s ease-out, transform 0.25s ease-out;
+}
+
+.view-container.active {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.step-page {
+  display: none;
+}
+
+.step-page.active {
+  display: block;
+  animation: fadeInStep 0.3s ease-in-out forwards;
+}
+
+@keyframes fadeInStep {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Badges */
+.badge-kisitli {
+  background-color: #FEE2E2;
+  color: #DC2626;
+  border: 1px solid #FCA5A5;
+}
+.badge-kontrollu {
+  background-color: #FEF3C7;
+  color: #D97706;
+  border: 1px solid #FCD34D;
+}
+.badge-genel {
+  background-color: #D1FAE5;
+  color: #059669;
+  border: 1px solid #6EE7B7;
+}
+
+/* Status Badges */
+.status-incelemede {
+  background-color: #EFF6FF;
+  color: #2563EB;
+}
+.status-atandi {
+  background-color: #FEF3C7;
+  color: #D97706;
+}
+.status-def {
+  background-color: #F3E8FF;
+  color: #9333EA;
+}
+.status-tamamlandi {
+  background-color: #ECFDF5;
+  color: #059669;
+}
+.status-kapali {
+  background-color: #F1F5F9;
+  color: #64748B;
+}
+
+/* Stepper line styling */
+.stepper-line {
+  position: relative;
+}
+.stepper-line::after {
+  content: '';
+  position: absolute;
+  top: 18px;
+  left: 12px;
+  right: 12px;
+  height: 3px;
+  background: #E2E8F0;
+  z-index: 1;
+}
+
+/* Interactive card hover */
+.hover-lift {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(11, 37, 69, 0.08), 0 8px 10px -6px rgba(11, 37, 69, 0.04);
+}
+
+/* Toast Notifications */
+#toastContainer {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+.toast {
+  pointer-events: auto;
+  animation: slideInRight 0.3s ease-out forwards;
+}
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Print simulation */
+@media print {
+  body {
+    background: white;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-area {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}
