@@ -165,17 +165,100 @@ body {
   }
 }
 
-/* Print simulation */
+/* Print simulation for PDF Export */
 @media print {
-  body {
-    background: white;
-  }
-  .no-print {
+  header, 
+  aside, 
+  nav, 
+  #toastContainer, 
+  #adminCaseModal, 
+  #announceModal, 
+  #manualNewModal, 
+  .no-print, 
+  button, 
+  input[type="text"], 
+  select {
     display: none !important;
   }
-  .print-area {
-    width: 100% !important;
-    margin: 0 !important;
+  
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 10pt !important;
+  }
+  
+  main {
     padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+  }
+  
+  .view-container {
+    display: block !important;
+    opacity: 1 !important;
+    transform: none !important;
+    max-width: 100% !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+  
+  #adminView {
+    display: none !important;
+  }
+  
+  #userView {
+    display: none !important;
+  }
+  
+  #loginView {
+    display: none !important;
+  }
+  
+  #reportView {
+    display: block !important;
+  }
+  
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin-top: 10px !important;
+  }
+  
+  th, td {
+    border: 1px solid #cbd5e1 !important;
+    padding: 6px 8px !important;
+    font-size: 8.5pt !important;
+  }
+  
+  th {
+    background-color: #f1f5f9 !important;
+    font-weight: bold !important;
+    color: #0b2545 !important;
   }
 }
+
+
+#pdfReport { display:none; }
+@media print {
+  @page { size:A4; margin:14mm; }
+  body > :not(#pdfReport) { display:none !important; }
+  #pdfReport { display:block !important; font-family:Arial,sans-serif; }
+  #pdfReport h1 { font-size:18pt; color:#0b2545; margin-bottom:12px; }
+  #pdfReport h2 { font-size:13pt; }
+  .pdf-chart { display:flex; align-items:center; gap:25px; break-inside:avoid; margin:20px 0; }
+  .pdf-chart li { margin:12px 0; }
+  #pdfReport svg { display:block; }
+  #pdfReport thead { display:table-header-group; }
+  #pdfReport tr { break-inside:avoid; }
+  #pdfReport { print-color-adjust:exact; -webkit-print-color-adjust:exact; }
+}
+
+.live-chart-card { background:white; border:1px solid #e2e8f0; border-radius:18px; padding:22px; min-width:0; }
+.live-chart-card h3 { font-size:12px; font-weight:800; color:#334155; letter-spacing:.06em; margin-bottom:18px; }
+.live-pie { width:100%; max-width:220px; height:220px; margin:0 auto 18px; display:block; }
+.live-trend { width:100%; height:220px; display:block; }
+.chart-legend { list-style:none; padding:0; font-size:12px; }
+.chart-legend li { display:flex; align-items:center; gap:8px; padding:7px 0; border-bottom:1px solid #f1f5f9; }
+.chart-legend strong { margin-left:auto; white-space:nowrap; }
+.chart-legend small { color:#64748b; font-weight:400; }
+.chart-empty { padding:60px 12px; text-align:center; color:#64748b; font-size:13px; }
